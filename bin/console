@@ -1,14 +1,85 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
 
-require "bundler/setup"
-require "stardot"
+require 'bundler/setup'
+require 'stardot'
+require 'pry'
 
-# You can add fixtures and/or initialization code here to make experimenting
-# with your gem easier. You can also use a different console, if you like.
+class Commands < Stardot::Plugin
+  run do |command|
+    puts "running: #{command}"
+  end
+end
 
-# (If you use this, don't forget to add pry to your Gemfile!)
-# require "pry"
-# Pry.start
+class Asdf < Stardot::Plugin
+  install do |language, **opts|
+    puts "asdf plugin-install #{language}"
+    if opts[:versions]
+      opts[:versions].each do |version|
+        puts "|> asdf install #{language} #{version}"
+      end
+    end
+  end
+end
 
-require "irb"
-IRB.start(__FILE__)
+class Brew < Stardot::Plugin
+  install do |package, **opts|
+    puts "brew install #{package} with opts: #{opts}"
+  end
+
+  update do |package, **opts|
+    puts "brew update #{package} with opts: #{opts}"
+  end
+
+  remove do |package, **opts|
+    puts "brew remove #{package} with opts: #{opts}"
+  end
+end
+
+Stardot.configure do
+  symlink '.dotfiles/bin/',          'bin/'
+  symlink '.dotfiles/init.vim',      '.config/nvim/'
+  symlink '.dotfiles/config.fish',   '.config/fish/'
+  symlink '.dotfiles/alacritty.yml', '.config/alacritty/'
+  symlink '.dotfiles/.asdfrc'
+  symlink '.dotfiles/.default-gems'
+  symlink '.dotfiles/.gitconfig'
+  symlink '.dotfiles/.gitignore'
+  symlink '.dotfiles/.rgignore'
+  symlink '.dotfiles/.tmux.conf'
+
+  brew do
+    install :alacritty, options: ['--HEAD']
+    install :fish
+    install :tmux
+    install :neovim
+    install :autojump
+    install :wget
+    install :fzf
+    install :rg
+    install :gnupg
+    install 'pinentry-mac'
+
+    install :grip
+    install 'youtube-dl'
+
+    install :gifcicle
+    install :graphicsmagick
+    install :imagemagick
+  end
+
+  asdf do
+    install :ruby,    versions: [:latest, '2.5.0', '2.4.0']
+    install :nodejs,  versions: [:latest, '10.0.0', '9.11.0']
+    install :crystal, versions: [:latest, '0.24.0']
+    install :python,  versions: [:latest]
+    install :rust,    versions: [:latest]
+  end
+
+  commands do
+    run 'defaults write com.apple.finder AppleShowAllFiles YES'
+    run 'defaults write com.apple.dock autohide-delay -float 1000; killall Dock'
+  end
+end
+
+Pry.start unless ARGV.include? '--once'
