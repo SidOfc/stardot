@@ -26,14 +26,6 @@ class Brew < Stardot::Plugin
   install do |package, **opts|
     puts "brew install #{package} with opts: #{opts}"
   end
-
-  update do |package, **opts|
-    puts "brew update #{package} with opts: #{opts}"
-  end
-
-  remove do |package, **opts|
-    puts "brew remove #{package} with opts: #{opts}"
-  end
 end
 
 Stardot.configure do
@@ -54,18 +46,16 @@ Stardot.configure do
     install :tmux
     install :neovim
     install :autojump
+    install :grip
     install :wget
     install :fzf
     install :rg
     install :gnupg
     install 'pinentry-mac'
-
-    install :grip
-    install 'youtube-dl'
-
-    install :gifcicle
     install :graphicsmagick
     install :imagemagick
+    install 'youtube-dl'
+    install :gifcicle
   end
 
   asdf do
