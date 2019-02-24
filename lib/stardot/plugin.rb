@@ -2,14 +2,13 @@
 
 module Stardot
   class Plugin < DSL
-    def self.inherited(by)
-      Stardot.plugins << by
-      puts "registered plugin #{by.name}"
+    def self.inherited(plugin)
+      Stardot.plugins << plugin
     end
 
-    def self.define_step(step, &block)
-      define_method step do |*args, **opts|
-        step(:install) { block.call(*args, **opts) }
+    def self.define_step(step_name, &block)
+      define_method step_name do |*args, **opts|
+        step(step_name) { block.call(*args, **opts) }
       end
     end
 
