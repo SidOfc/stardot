@@ -28,6 +28,15 @@ class Brew < Stardot::Plugin
   end
 end
 
+class Symlink < Stardot::Plugin
+  def ln(from, to = Dir.home)
+    from = expand_path from
+    to   = expand_path to
+
+    puts "symlink: #{from} ~> #{to}"
+  end
+end
+
 Stardot.configure_using_config_file!
 
 Pry.start unless ARGV.include? '--once'

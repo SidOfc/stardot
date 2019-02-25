@@ -1,13 +1,15 @@
-ln '.dotfiles/bin/',          'bin/'
-ln '.dotfiles/init.vim',      '.config/nvim/'
-ln '.dotfiles/config.fish',   '.config/fish/'
-ln '.dotfiles/alacritty.yml', '.config/alacritty/'
-ln '.dotfiles/.asdfrc'
-ln '.dotfiles/.default-gems'
-ln '.dotfiles/.gitconfig'
-ln '.dotfiles/.gitignore'
-ln '.dotfiles/.rgignore'
-ln '.dotfiles/.tmux.conf'
+symlink do
+  ln '.dotfiles/bin/',          'bin/'
+  ln '.dotfiles/init.vim',      '.config/nvim/'
+  ln '.dotfiles/config.fish',   '.config/fish/'
+  ln '.dotfiles/alacritty.yml', '.config/alacritty/'
+  ln '.dotfiles/.asdfrc'
+  ln '.dotfiles/.default-gems'
+  ln '.dotfiles/.gitconfig'
+  ln '.dotfiles/.gitignore'
+  ln '.dotfiles/.rgignore'
+  ln '.dotfiles/.tmux.conf'
+end
 
 brew do
   install :alacritty, options: ['--HEAD']

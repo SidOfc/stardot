@@ -21,15 +21,16 @@ module Stardot
     runner = Plugin.new(&block)
 
     runner.steps.each do |name, steps|
-      steps.map(&:call) if execute_plugin? name
+      steps.each(&:call)
     end
 
     runner
   end
 
   def self.execute_plugin?(name)
-    ONLY_FLAGS.any? { |flag| flag === name } ||
-      ONLY_FLAGS.empty? && SKIP_FLAGS.none? { |flag| flag === name }
+    return true if !plugin?(name) || ONLY_FLAGS.any? { |flag| flag == name }
+
+    ONLY_FLAGS.empty? && SKIP_FLAGS.none? { |flag| flag == name }
   end
 
   def self.plugin?(name)

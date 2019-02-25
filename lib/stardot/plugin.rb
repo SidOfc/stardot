@@ -2,23 +2,29 @@
 
 module Stardot
   class Plugin
-    attr_reader :steps
+    attr_reader :steps, :interface
 
     def initialize(*_args, **_opts, &block)
       @steps = {}
-      @step  = nil
+      @interface = self.class.instance_methods(false) - Object.instance_methods
 
       wrap_methods! unless self.class.name == 'Stardot::Plugin'
 
       instance_eval(&block) if block
     end
 
-    def step(name, &block)
-      @step = name.to_s
-      @steps[@step] ||= []
-      @steps[@step] << block if block
+    def run?(plugin)
+      Stardot.execute_plugin?(plugin.to_s) ||
+        interface.any? { |mtd| mtd == plugin }
+    end
 
-      @step = nil
+    def step(plugin, &block)
+      if block && run?(plugin)
+        @steps[plugin] ||= []
+        @steps[plugin] << block
+      end
+
+      plugin
     end
 
     def expand_path(target)
@@ -38,14 +44,6 @@ module Stardot
       end
     end
 
-    def symlink(from, to = '~')
-      from = expand_path from
-      to   = expand_path to
-
-      step(:symlink) { puts "symlink: #{from} ~> #{to}" }
-    end
-    alias_method :ln, :symlink
-
     def method_missing(name, *args, **opts, &block)
       raise Stardot::Error.new("Plugin: #{name} not found, aborting") \
         unless Stardot.plugin? name
@@ -58,7 +56,7 @@ module Stardot
     end
 
     def wrap_methods!
-      (self.class.instance_methods(false) - Object.instance_methods).each do |mtd|
+      interface.each do |mtd|
         # set wrapped alias to something that is 'hard' to accidentally
         # overwrite or call. Since the alias name will always contain
         # a '-' character, only #send can be used to invoke the alias.
