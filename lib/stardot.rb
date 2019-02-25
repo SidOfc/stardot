@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require 'stardot/version'
-require 'stardot/dsl'
 require 'stardot/plugin'
 
 module Stardot
@@ -12,8 +11,14 @@ module Stardot
   ONLY_FLAGS = ARGV.select { |arg| arg.start_with? '--only-' }
                    .map { |skip| skip.split(/^--only-/).pop.downcase }.freeze
 
+  def self.configure_using_config_file!
+    configure do
+      instance_eval File.read(File.join(__dir__, '../spec/files/stardot.rb'))
+    end
+  end
+
   def self.configure(&block)
-    runner = DSL.new(&block)
+    runner = Plugin.new(&block)
 
     runner.steps.each do |name, steps|
       steps.map(&:call) if execute_plugin? name

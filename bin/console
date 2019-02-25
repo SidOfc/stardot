@@ -6,13 +6,13 @@ require 'stardot'
 require 'pry'
 
 class Commands < Stardot::Plugin
-  run do |command|
+  def run(command)
     puts "running: #{command}"
   end
 end
 
 class Asdf < Stardot::Plugin
-  install do |language, **opts|
+  def install(language, **opts)
     puts "asdf plugin-install #{language}"
     if opts[:versions]
       opts[:versions].each do |version|
@@ -23,53 +23,11 @@ class Asdf < Stardot::Plugin
 end
 
 class Brew < Stardot::Plugin
-  install do |package, **opts|
+  def install(package, **opts)
     puts "brew install #{package} with opts: #{opts}"
   end
 end
 
-Stardot.configure do
-  symlink '.dotfiles/bin/',          'bin/'
-  symlink '.dotfiles/init.vim',      '.config/nvim/'
-  symlink '.dotfiles/config.fish',   '.config/fish/'
-  symlink '.dotfiles/alacritty.yml', '.config/alacritty/'
-  symlink '.dotfiles/.asdfrc'
-  symlink '.dotfiles/.default-gems'
-  symlink '.dotfiles/.gitconfig'
-  symlink '.dotfiles/.gitignore'
-  symlink '.dotfiles/.rgignore'
-  symlink '.dotfiles/.tmux.conf'
-
-  brew do
-    install :alacritty, options: ['--HEAD']
-    install :fish
-    install :tmux
-    install :neovim
-    install :autojump
-    install :grip
-    install :wget
-    install :fzf
-    install :rg
-    install :gnupg
-    install 'pinentry-mac'
-    install :graphicsmagick
-    install :imagemagick
-    install 'youtube-dl'
-    install :gifcicle
-  end
-
-  asdf do
-    install :ruby,    versions: [:latest, '2.5.0', '2.4.0']
-    install :nodejs,  versions: [:latest, '10.0.0', '9.11.0']
-    install :crystal, versions: [:latest, '0.24.0']
-    install :python,  versions: [:latest]
-    install :rust,    versions: [:latest]
-  end
-
-  commands do
-    run 'defaults write com.apple.finder AppleShowAllFiles YES'
-    run 'defaults write com.apple.dock autohide-delay -float 1000; killall Dock'
-  end
-end
+Stardot.configure_using_config_file!
 
 Pry.start unless ARGV.include? '--once'
