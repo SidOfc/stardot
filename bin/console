@@ -2,71 +2,19 @@
 # frozen_string_literal: true
 
 require 'bundler/setup'
-require 'stardot'
 require 'pry'
+require 'stardot'
 
-class Commands < Stardot::Fragment
-  def run(command)
-    puts "running: #{command}"
-  end
-end
-
-class Asdf < Stardot::Fragment
-  def install(language, **opts)
-    puts "asdf plugin-install #{language}"
-    if opts[:versions]
-      opts[:versions].each do |version|
-        puts "|> asdf install #{language} #{version}"
-      end
-    end
-  end
-end
-
-class Brew < Stardot::Fragment
-  def install(package, **opts)
-    puts "brew install #{package} with opts: #{opts}"
-  end
-end
-
-class Symlink < Stardot::Fragment
-  def ln(from, to = Dir.home)
-    from = expand_path from
-    to   = expand_path to
-
-    puts "symlink: #{from} ~> #{to}"
-  end
-
-  private
-
-  def expand_path(target)
-    return target if target.start_with? '/'
-
-    File.join Dir.home, target.gsub('~', '')
-  end
-end
-
-# Stardot.configure.process
-Stardot.configure do
+Stardot.configure! do
   asdf do
-    install :ruby,    versions: [:latest, '2.5.0', '2.4.0']
-    install :nodejs,  versions: [:latest, '10.0.0', '9.11.0']
-    install :crystal, versions: [:latest, '0.24.0']
-    install :python,  versions: [:latest]
-    install :rust,    versions: [:latest]
+    install :ruby, versions: [:latest, '2.5.0', '2.4.0']
   end
 
   symlink do
-    ln '.dotfiles/bin/',          'bin/'
-    ln '.dotfiles/init.vim',      '.config/nvim/'
-    ln '.dotfiles/config.fish',   '.config/fish/'
-    ln '.dotfiles/alacritty.yml', '.config/alacritty/'
-    ln '.dotfiles/.asdfrc'
-    ln '.dotfiles/.default-gems'
-    ln '.dotfiles/.gitconfig'
-    ln '.dotfiles/.gitignore'
-    ln '.dotfiles/.rgignore'
+    ln '.dotfiles/bin/',     'bin/'
+    ln '.dotfiles/init.vim', '.config/nvim/'
     ln '.dotfiles/.tmux.conf'
   end
-end.process
+end
 
 pp Stardot.log
