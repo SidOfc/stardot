@@ -1,2 +1,10 @@
 AllCops:
   TargetRubyVersion: 2.3
+  Exclude:
+    - 'spec/files/**'
+
+Style/Documentation:
+  Enabled: false
+
+Metrics/MethodLength:
+  Max: 15

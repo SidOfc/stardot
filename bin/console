@@ -8,13 +8,15 @@ require 'stardot'
 Stardot.configure! do
   asdf do
     install :ruby, versions: [:latest, '2.5.0', '2.4.0']
+
+    symlink do
+      ln '.dotfiles/bin/',     'bin/'
+      ln '.dotfiles/init.vim', '.config/nvim/'
+      ln '.dotfiles/.tmux.conf'
+    end
   end
 
   symlink do
-    ln '.dotfiles/bin/',     'bin/'
-    ln '.dotfiles/init.vim', '.config/nvim/'
     ln '.dotfiles/.tmux.conf'
   end
 end
-
-pp Stardot.log

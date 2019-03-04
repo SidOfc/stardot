@@ -2,6 +2,6 @@
 
 class Commands < Stardot::Fragment
   def run(command)
-    puts "running: #{command}"
+    ok command
   end
 end

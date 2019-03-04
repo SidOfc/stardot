@@ -1,7 +1,7 @@
+# frozen_string_literal: true
+
 class Brew < Stardot::Fragment
   def install(package, **opts)
-    puts "brew install #{package} with opts: #{opts}"
+    ok "#{package}, options: #{opts}"
   end
 end
-
-
