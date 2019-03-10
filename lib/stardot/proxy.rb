@@ -7,17 +7,18 @@ module Stardot
       @target = target
       @before = opts[:before]
       @after  = opts[:after]
+      @catch  = opts[:catch]
     end
 
+    # rubocop:disable Style/MethodMissingSuper
     def method_missing(name, *args, &block)
-      return super unless target.respond_to? name
-
       @before&.call(name, *args)
       @after&.call(name, *args, target.send(name, *args, &block))
     end
+    # rubocop:enable Style/MethodMissingSuper
 
     def respond_to_missing?(name, *args)
-      target.respond_to_missing?(name, *args)
+      target.respond_to?(name, *args)
     end
   end
 end

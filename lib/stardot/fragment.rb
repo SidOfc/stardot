@@ -2,20 +2,16 @@
 
 module Stardot
   class Fragment
-    STATUSES       = %i[ok error].freeze
+    STATUSES       = %i[ok error info warn].freeze
     LAZY_LOAD_ROOT =
       File.join(File.expand_path(__dir__), 'fragments/**/fragment.rb').freeze
 
-    COLORS = {
-      ok: :green,
-      error: :red,
-      action: :default
-    }.freeze
-
     def initialize(**opts, &block)
       @block       = block
-      @label       = self.class.name.gsub('::', '_').downcase.to_sym.freeze
-      @last_action = nil
+      @label       = self.class.name.gsub('::', '_').downcase.to_sym
+      @async_tasks = []
+      @tasks_total = 0
+      @printer     = Printer.new
 
       if opts[:proxy] != false
         @proxy = Proxy.new(self, before: method(:before_action),
@@ -25,7 +21,14 @@ module Stardot
       setup if respond_to? :setup
     end
 
+    def async(&block)
+      @async_tasks << Thread.new do
+        instance_eval(&block)
+      end
+    end
+
     def process
+      @ts = Time.now.to_i
       (@proxy || self).instance_eval(&@block) if @block
     end
 
@@ -41,20 +44,6 @@ module Stardot
       end
     end
 
-    def self.current_indent
-      @current_indent ||= +''
-    end
-
-    def self.indent!(amount = 2)
-      @current_indent << ' ' * (@last_amount = amount)
-    end
-
-    def self.unindent!(amount = @last_amount)
-      @current_indent = current_indent[0..-(amount + 1)]
-    end
-
-    private
-
     def method_missing(name, *args, &block)
       return super if Fragment.lazy_loadable[name].nil?
 
@@ -62,38 +51,69 @@ module Stardot
       send(name, *args, &block)
     end
 
-    def respond_to_missing?(name, *)
+    def respond_to_missing?(name, *_args)
       !Fragment.lazy_loadable[name].nil?
     end
 
+    private
+
     STATUSES.each do |status|
-      define_method status do |message = nil|
-        echo message, status if message&.is_a?(String)
+      define_method status do |message = nil, **opts|
+        return unless message
+
+        @printer.echo message, **{ color: status }.merge(opts)
         status
       end
     end
 
-    def echo(message, color = :default)
-      painted = Paint[message, COLORS.fetch(color, color)]
-
-      $stdout.puts "#{Fragment.current_indent}#{painted}"
+    def time_passed
+      diff_time = Time.at(Time.now.to_i - @ts).utc
+      format '%02d:%02d:%02d', diff_time.hour, diff_time.min, diff_time.sec
     end
 
     def before_action(name, *_args)
-      echo "#{@label}::#{name}", :action \
+      @printer.echo "#{@label}::#{name}", color: :action \
         unless @last_action == name || Fragment.lazy_loadable[name]
 
-      Fragment.indent!
+      @printer.indent
     end
 
     def after_action(name, *args, result)
       @last_action = name
 
-      Fragment.unindent!
+      wait_for_async_tasks
+      @printer.unindent
+
       Stardot.logger.append(
         fragment: @label, action: name,
         args: args, result: result
       )
+    end
+
+    def update_progress
+      @printer.tick!
+      load_frame = @printer.paint @printer.loader, :info
+      suffix     = @printer.paint 'finished', :info
+      counters   = @printer.paint(
+        "#{@tasks_total - (@async_tasks.count - 1)}/#{@tasks_total}",
+        :gray
+      )
+
+      @printer.echo "#{load_frame} #{counters} #{suffix}", soft: 1
+    end
+
+    def wait_for_async_tasks
+      @tasks_total = (@async_tasks.count - 1).freeze
+
+      while @async_tasks.any?(&:status)
+        @async_tasks.reject(&:status).each(&:join)
+        @async_tasks = @async_tasks.select(&:status)
+
+        update_progress
+        sleep 1.0 / 30
+      end
+
+      @printer.reset!
     end
   end
 end

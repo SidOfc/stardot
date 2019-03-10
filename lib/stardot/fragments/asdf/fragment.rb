@@ -3,7 +3,12 @@
 class Asdf < Stardot::Fragment
   def install(language, **opts)
     opts[:versions]&.each do |version|
-      ok "#{language} #{version}"
+      async do
+        slow_time = rand 1..6
+
+        sleep slow_time
+        ok "#{language} #{version}"
+      end
     end
   end
 end

@@ -5,18 +5,16 @@ require 'bundler/setup'
 require 'pry'
 require 'stardot'
 
-Stardot.configure! do
+Stardot.configure! log: false do
   asdf do
-    install :ruby, versions: [:latest, '2.5.0', '2.4.0']
+    versions = (1..3).flat_map do |major|
+      (2..4).map { |minor| [major, minor, 0].join '.' }
+    end
+
+    install :ruby, versions: versions
 
     symlink do
-      ln '.dotfiles/bin/',     'bin/'
-      ln '.dotfiles/init.vim', '.config/nvim/'
-      ln '.dotfiles/.tmux.conf'
+      5.times { ln '.dotfiles/bin/', 'bin/' }
     end
-  end
-
-  symlink do
-    ln '.dotfiles/.tmux.conf'
   end
 end

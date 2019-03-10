@@ -2,16 +2,12 @@
 
 module Stardot
   class Logger
-    attr_reader :format, :file, :buffer
+    attr_reader :format, :file, :buffer, :path, :dir
 
-    def initialize(path, **opts)
-      full_path = File.expand_path path
-      log_dir   = File.dirname full_path
-
-      FileUtils.mkdir_p log_dir unless Dir.exist? log_dir
-
+    def initialize(file_path, **opts)
+      @path   = File.expand_path file_path
+      @dir    = File.dirname @path
       @format = opts.fetch :format, :yaml
-      @file   = File.open full_path, 'a'
       @buffer = []
     end
 
@@ -20,7 +16,12 @@ module Stardot
     end
 
     def persist
-      file.puts content
+      @file ||= begin
+                  FileUtils.mkdir_p dir unless Dir.exist? dir
+                  File.open path, 'a'
+                end
+
+      @file.puts content
     end
 
     def to_s

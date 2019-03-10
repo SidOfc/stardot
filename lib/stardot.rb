@@ -5,6 +5,7 @@ require 'paint'
 require_relative 'stardot/version'
 require_relative 'stardot/proxy'
 require_relative 'stardot/logger'
+require_relative 'stardot/printer'
 require_relative 'stardot/fragment'
 
 module Stardot
@@ -14,13 +15,13 @@ module Stardot
       block      = proc { instance_eval stardot_rb }
     end
 
-    Fragment.new({ proxy: false }, &block)
+    Fragment.new(proxy: false, &block)
   end
 
-  def self.configure!(&block)
+  def self.configure!(**opts, &block)
     fragment = configure(&block)
     fragment.process
-    logger.persist
+    logger.persist unless opts[:log] == false
     fragment
   end
 
@@ -28,3 +29,6 @@ module Stardot
     @logger ||= Logger.new "log/stardot.#{Time.now.to_i}.log"
   end
 end
+
+system 'stty -echoctl'
+trap('SIGINT') { Stardot.running.each(&:terminate) }
