@@ -15,7 +15,7 @@ module Stardot
       block      = proc { instance_eval stardot_rb }
     end
 
-    Fragment.new(proxy: false, &block)
+    Fragment.new(&block)
   end
 
   def self.configure!(**opts, &block)
@@ -28,7 +28,22 @@ module Stardot
   def self.logger
     @logger ||= Logger.new "log/stardot.#{Time.now.to_i}.log"
   end
+
+  def self.watch(*threads)
+    (@watching ||= []).concat threads
+  end
+
+  def self.unwatch(*threads)
+    @watching ||= []
+    @watching -=  threads
+    @watching
+  end
+
+  def self.kill
+    @watching.each(&:kill)
+    exit
+  end
 end
 
 system 'stty -echoctl'
-trap('SIGINT') { Stardot.running.each(&:terminate) }
+trap('SIGINT') { Stardot.kill }

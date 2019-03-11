@@ -2,18 +2,21 @@
 
 module Stardot
   class Fragment
+    attr_reader :proxy
+
     STATUSES       = %i[ok error info warn].freeze
     LAZY_LOAD_ROOT =
       File.join(File.expand_path(__dir__), 'fragments/**/fragment.rb').freeze
 
     def initialize(**opts, &block)
+      @opts        = opts
       @block       = block
       @label       = self.class.name.gsub('::', '_').downcase.to_sym
+      @printer     = Printer.new(**opts)
       @async_tasks = []
-      @tasks_total = 0
-      @printer     = Printer.new
+      @async_tasks_count = 0
 
-      if opts[:proxy] != false
+      unless self.class == Stardot::Fragment
         @proxy = Proxy.new(self, before: method(:before_action),
                                  after: method(:after_action))
       end
@@ -22,9 +25,12 @@ module Stardot
     end
 
     def async(&block)
-      @async_tasks << Thread.new do
+      worker = Thread.new do
         instance_eval(&block)
       end
+
+      @async_tasks << worker
+      Stardot.watch worker
     end
 
     def process
@@ -40,7 +46,7 @@ module Stardot
 
     def self.inherited(fragment_class)
       define_method fragment_class.name.downcase do |*args, &block|
-        fragment_class.new(*args, &block).process
+        fragment_class.new(*args, **@opts, &block).process
       end
     end
 
@@ -72,13 +78,14 @@ module Stardot
     end
 
     def before_action(name, *_args)
-      @printer.echo "#{@label}::#{name}", color: :action \
-        unless @last_action == name || Fragment.lazy_loadable[name]
+      unless @last_action == name || Fragment.lazy_loadable[name]
+        @printer.echo "#{@label}::#{name}", color: :action
+      end
 
       @printer.indent
     end
 
-    def after_action(name, *args, result)
+    def after_action(name, *args, status)
       @last_action = name
 
       wait_for_async_tasks
@@ -86,16 +93,16 @@ module Stardot
 
       Stardot.logger.append(
         fragment: @label, action: name,
-        args: args, result: result
+        args:     args,   status: status
       )
     end
 
-    def update_progress
-      @printer.tick!
-      load_frame = @printer.paint @printer.loader, :info
-      suffix     = @printer.paint 'finished', :info
+    def progress(done = false)
+      loader, color = done ? [@printer.done, :warn] : [@printer.loader, :info]
+      load_frame = @printer.paint loader, color
+      suffix     = @printer.paint 'finished', color
       counters   = @printer.paint(
-        "#{@tasks_total - (@async_tasks.count - 1)}/#{@tasks_total}",
+        "#{@async_tasks_count - @async_tasks.count}/#{@async_tasks_count}",
         :gray
       )
 
@@ -103,17 +110,22 @@ module Stardot
     end
 
     def wait_for_async_tasks
-      @tasks_total = (@async_tasks.count - 1).freeze
+      return if (@async_tasks_count = @async_tasks.count).zero?
 
-      while @async_tasks.any?(&:status)
-        @async_tasks.reject(&:status).each(&:join)
+      @printer.reset!
+
+      while @async_tasks.any?
+        done         = @async_tasks.reject(&:status)
         @async_tasks = @async_tasks.select(&:status)
 
-        update_progress
+        Stardot.unwatch(*done)
+        done.each(&:join)
+
+        progress
         sleep 1.0 / 30
       end
 
-      @printer.reset!
+      progress true
     end
   end
 end

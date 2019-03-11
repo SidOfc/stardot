@@ -1,20 +1,30 @@
 # frozen_string_literal: true
 
 class Symlink < Stardot::Fragment
-  def ln(from, to = Dir.home)
-    from = expand_path from
-    to   = expand_path to
+  def ln(from, to = base, **opts)
+    from = File.expand_path from
+    to   = File.expand_path to
+    dest_exists = File.symlink? to
 
-    ok "#{shorten_path(from)} to #{shorten_path(to)}"
+    if opts[:force] != true && dest_exists
+      error "did not create #{sp(to)} because it already exists"
+    elsif !File.exist? from
+      error "could not create a symlink #{sp(to)} because #{sp(from)} does not exist"
+    else
+      File.unlink to if dest_exists
+      File.symlink from, to
+      ok "#{sp(from)} to #{sp(to)}"
+    end
   end
 
   private
 
-  def expand_path(path)
-    path.start_with?('/') ? path : File.join(Dir.home, path.delete('~'))
+  def base(path = nil)
+    @base = path if path
+    @base || Dir.home
   end
 
-  def shorten_path(path)
-    path.sub Dir.home, '~'
+  def sp(path)
+    path.sub base, '~'
   end
 end

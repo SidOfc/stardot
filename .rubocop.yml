@@ -4,7 +4,10 @@ AllCops:
     - 'spec/files/**'
 
 Style/Documentation:
-  Enabled: false
+  Enabled: False
 
 Metrics/MethodLength:
   Max: 15
+
+Layout/AlignHash:
+  Enabled: False

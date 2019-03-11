@@ -12,9 +12,13 @@ Stardot.configure! log: false do
     end
 
     install :ruby, versions: versions
+  end
 
-    symlink do
-      5.times { ln '.dotfiles/bin/', 'bin/' }
-    end
+  symlink do
+    5.times { ln '.dotfiles/bin/', 'bin/' }
+  end
+
+  brew do
+    install :fzf
   end
 end

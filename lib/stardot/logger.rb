@@ -2,17 +2,17 @@
 
 module Stardot
   class Logger
-    attr_reader :format, :file, :buffer, :path, :dir
+    attr_reader :format, :file, :entries, :path, :dir
 
     def initialize(file_path, **opts)
-      @path   = File.expand_path file_path
-      @dir    = File.dirname @path
-      @format = opts.fetch :format, :yaml
-      @buffer = []
+      @path    = File.expand_path file_path
+      @dir     = File.dirname @path
+      @format  = opts.fetch :format, :yaml
+      @entries = []
     end
 
     def append(entry)
-      buffer << entry
+      entries << entry
     end
 
     def persist
@@ -32,8 +32,8 @@ module Stardot
 
     def content
       case format
-      when :yaml, :yml then buffer.to_yaml
-      else buffer.to_json
+      when :yaml, :yml then entries.to_yaml
+      else entries.to_json
       end
     end
   end

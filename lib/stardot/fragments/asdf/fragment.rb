@@ -7,7 +7,8 @@ class Asdf < Stardot::Fragment
         slow_time = rand 1..6
 
         sleep slow_time
-        ok "#{language} #{version}"
+
+        ok "❖ #{language} #{version}"
       end
     end
   end
