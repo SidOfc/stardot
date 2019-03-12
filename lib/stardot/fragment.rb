@@ -51,9 +51,11 @@ module Stardot
     end
 
     def method_missing(name, *args, &block)
-      return super if Fragment.lazy_loadable[name].nil?
+      loadable = Fragment.lazy_loadable.delete name
 
-      require Fragment.lazy_loadable[name]
+      return super unless loadable
+
+      require loadable
       send(name, *args, &block)
     end
 
@@ -70,6 +72,25 @@ module Stardot
         @printer.echo message, **{ color: status }.merge(opts)
         status
       end
+    end
+
+    def prompt(msg, options, **opts)
+      answer     = nil
+      default    = opts[:selected].to_s
+      options    = options.map(&:to_s)
+      print_opts = options.join '/'
+      print_opts = print_opts.sub default, "[#{default}]" unless default.empty?
+
+      warn "#{msg} (#{print_opts}): ", soft: opts[:soft], newline: false
+
+      until options.include? answer
+        answer = STDIN.getch.strip
+        answer = default if answer.empty?
+      end
+
+      warn '' # create a newline
+
+      answer
     end
 
     def time_passed

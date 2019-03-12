@@ -4,11 +4,22 @@ class Symlink < Stardot::Fragment
   def ln(from, to = base, **opts)
     from = File.join base, from unless from.start_with? '/'
     to   = File.expand_path File.join(base, to) unless to.start_with? '/'
-    to   = File.join(to, File.basename(from)) unless to =~ /\.\w+$/i || from !~ /\.\w+$/i
+    to   = File.join(to, File.basename(from)) if to !~ /\.[^\/.]+$/i && from =~ /\.[^\/.]+$/i
     dest_exists = File.symlink?(to) || Dir.exist?(to)
+    force = opts.fetch :force, false
+    prompted = false
 
-    if opts[:force] != true && dest_exists
-      error "did not create #{sp(to)} because it already exists"
+    if dest_exists && STDIN.isatty
+      prompted = true
+      force = prompt("overwrite existing: #{sp(to)}", %w[y n], selected: 'n') == 'y'
+    end
+
+    if force == false
+      if prompted
+        info "did not symlink #{sp(from)} to #{sp(to)}"
+      else
+        error "did not create #{sp(to)} because it already exists"
+      end
     elsif !File.exist? from
       error "could not create a symlink #{sp(to)} because #{sp(from)} does not exist"
     else

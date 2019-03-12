@@ -36,19 +36,14 @@ module Stardot
       @frame = 0
     end
 
-    def locked
-      MUTEX.lock
-      yield
-      MUTEX.unlock
-    end
-
     def echo(msg, **opts)
       return if @silent
 
       msg = paint msg, opts[:color] if opts[:color]
 
       MUTEX.synchronize do
-        puts control_sequences(opts) + Printer.indent + msg + debug
+        print control_sequences(opts) + Printer.indent + msg + debug
+        print "\n" unless opts[:newline] == false
       end
     end
 
