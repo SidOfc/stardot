@@ -4,7 +4,11 @@ require 'bundler/setup'
 require 'stardot'
 
 module Helpers
-  ROOT = File.join __dir__, 'files'
+  ROOT_DIR = File.join __dir__, 'files'
+
+  def statuses
+    Stardot.logger.entries.map { |entry| entry[:status] }
+  end
 
   def fragment(**opts, &block)
     Stardot::Fragment.new(opts.merge(silent: true), &block).process

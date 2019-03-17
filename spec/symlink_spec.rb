@@ -5,16 +5,12 @@ RSpec.describe 'Symlink < Stardot::Fragment' do
     File.symlink?(File.join(symlink.dest, *loc))
   end
 
-  def statuses
-    Stardot.logger.entries.map { |entry| entry[:status] }
-  end
-
   let(:symlink) { as_plugin :symlink }
 
   before :each do
     symlink.process do
-      src Helpers::ROOT
-      dest File.join(Helpers::ROOT, 'symlink')
+      src  Helpers::ROOT_DIR
+      dest File.join(Helpers::ROOT_DIR, 'symlink')
     end
 
     FileUtils.mkdir_p symlink.dest
