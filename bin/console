@@ -17,7 +17,7 @@ Stardot.configure! log: false do
   # end
 
   symlink do
-    dest './spec/files/dev/null'
+    dest './sandbox'
 
     ln '.dotfiles/bin/',          'bin/'
     ln '.dotfiles/init.vim',      '.config/nvim/'
