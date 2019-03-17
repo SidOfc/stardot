@@ -1,84 +1,79 @@
 # frozen_string_literal: true
 
 RSpec.describe 'Symlink < Stardot::Fragment' do
-  DEST_DIR    = File.join Helpers::ROOT, 'symlink'
-  SRC_FILE    = File.join Helpers::ROOT, 'stardot.rb'
-  DEST_FILE   = File.join DEST_DIR,      'stardot.rb'
-  SRC_FOLDER  = File.join Helpers::ROOT, 'folder/'
-  DEST_FOLDER = File.join DEST_DIR,      'folder/'
+  def dest_symlink?(*loc)
+    File.symlink?(File.join(symlink.dest, *loc))
+  end
+
+  def statuses
+    Stardot.logger.entries.map { |entry| entry[:status] }
+  end
+
+  let(:symlink) { as_plugin :symlink }
 
   before :each do
-    FileUtils.mkdir_p DEST_DIR
+    symlink.process do
+      src Helpers::ROOT
+      dest File.join(Helpers::ROOT, 'symlink')
+    end
+
+    FileUtils.mkdir_p symlink.dest
   end
 
   after :each do
-    FileUtils.rm_rf DEST_DIR
+    FileUtils.rm_rf symlink.dest
   end
 
   describe '#ln' do
     it 'creates a file symlink' do
-      as_plugin :symlink do
-        dest DEST_DIR
+      symlink.process { ln 'stardot.rb', 'stardot.rb' }
 
-        ln SRC_FILE, DEST_FILE
-      end
+      expect(dest_symlink?('stardot.rb')).to be true
+    end
 
-      expect(File.symlink?(DEST_FILE)).to be true
+    it 'uses source filename when destination is absent' do
+      symlink.process { ln 'stardot.rb' }
+
+      expect(dest_symlink?('stardot.rb')).to be true
     end
 
     it 'creates a directory symlink' do
-      as_plugin :symlink do
-        dest DEST_DIR
+      symlink.process { ln 'folder/', 'folder/' }
 
-        ln SRC_FOLDER, DEST_FOLDER
-      end
+      expect(dest_symlink?('folder')).to be true
+    end
 
-      expect(File.directory?(DEST_FOLDER)).to be true
+    it 'uses source dirname when destination is absent' do
+      symlink.process { ln 'folder/' }
+
+      expect(dest_symlink?('folder')).to be true
     end
 
     it 'errors when source location does not exist' do
-      as_plugin :symlink do
-        dest DEST_DIR
+      symlink.process { ln '_', 'stardot.rb' }
 
-        ln '_', DEST_FILE
-      end
-
-      expect(Stardot.logger.entries.last[:status]).to eq :error
-    end
-
-    it 'overwrites an existing symlink using force: true' do
-      as_plugin :symlink do
-        dest DEST_DIR
-
-        ln SRC_FILE, DEST_FILE
-        ln SRC_FILE, DEST_FILE, force: true
-      end
-
-      expect(Stardot.logger.entries.last[:status]).to eq :ok
-    end
-
-    it 'overwrites an existing symlink using cli flag "-y"' do
-      with_cli_args '-y' do
-        as_plugin :symlink do
-          dest DEST_DIR
-
-          ln SRC_FILE, DEST_FILE
-          ln SRC_FILE, DEST_FILE
-        end
-      end
-
-      expect(Stardot.logger.entries.last[:status]).to eq :ok
+      expect(statuses.last).to be :error
     end
 
     it 'does not overwrite an existing symlink' do
-      as_plugin :symlink do
-        dest DEST_DIR
+      symlink.process { 2.times { ln 'stardot.rb' } }
 
-        ln SRC_FILE, DEST_FILE
-        ln SRC_FILE, DEST_FILE
+      expect(statuses.last).to be :error
+    end
+
+    it 'overwrites an existing symlink using force: true' do
+      symlink.process do
+        ln 'stardot.rb'
+        ln 'stardot.rb', force: true
       end
 
-      expect(Stardot.logger.entries.last[:status]).to eq :error
+      expect(statuses.last).to be :ok
+    end
+
+    it 'overwrites an existing symlink using cli flag "-y"' do
+      with_cli_args('-y') { symlink.process { 2.times { ln 'stardot.rb' } } }
+
+      expect(statuses.last).to be :ok
     end
   end
 end
