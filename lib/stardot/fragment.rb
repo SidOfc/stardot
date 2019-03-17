@@ -17,7 +17,8 @@ module Stardot
       @async_tasks_count = 0
 
       unless self.class == Stardot::Fragment
-        @proxy = Proxy.new self, after: method(:after_action)
+        @proxy = Proxy.new self, before: method(:before_action),
+                                 after: method(:after_action)
       end
 
       setup if respond_to? :setup

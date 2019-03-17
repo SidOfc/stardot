@@ -18,6 +18,16 @@ class Symlink < Stardot::Fragment
     end
   end
 
+  def dest(path = nil)
+    @dest = File.expand_path path if path
+    @dest || Dir.home
+  end
+
+  def src(path = nil)
+    @src = File.expand_path path if path
+    @src || Dir.home
+  end
+
   private
 
   def expand_from(from)
@@ -28,27 +38,23 @@ class Symlink < Stardot::Fragment
   def expand_to(to, from)
     to = File.join dest, to unless to.start_with? '/'
     to = to.gsub %r{[\/]+\z}, ''
-    to += "/#{File.basename(from)}" \
-      if to !~ %r{\.[^\/.]+\z} && from =~ %r{\.[^\/.]+\z}
+
+    if (ext?(from) && !ext?(to)) || (!ext?(from) && Dir.exist?(to))
+      to = File.join to, File.basename(from)
+    end
 
     to
+  end
+
+  def ext?(path)
+    path =~ %r{\.[^\/.]+\z}
   end
 
   def persist(from, to)
     FileUtils.remove_entry_secure to, force: true
     FileUtils.mkdir_p File.dirname(to) unless File.exist? File.dirname(to)
-    FileUtils.mkdir_p File.dirname(from) unless File.exist? File.dirname(from)
+
     File.symlink from, to
-  end
-
-  def dest(path = nil)
-    @dest = File.expand_path path if path
-    @dest || Dir.home
-  end
-
-  def src(path = nil)
-    @src = File.expand_path path if path
-    @src || Dir.home
   end
 
   def sp(path)
