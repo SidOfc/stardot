@@ -10,7 +10,7 @@ module Stardot
       ok:     :green,
       error:  :red,
       warn:   'D7875F',
-      action: :default,
+      action: :yellow,
       gray:   '#666'
     }.freeze
 
@@ -39,21 +39,19 @@ module Stardot
     def echo(msg, **opts)
       return if @silent
 
-      msg = paint msg, opts[:color] if opts[:color]
+      msg = paint(msg, **opts) if opts[:color]
 
       MUTEX.synchronize do
-        print control_sequences(opts) + Printer.indent + msg + debug
+        print control_sequences(opts) + Printer.indent + msg
         print "\n" unless opts[:newline] == false
       end
     end
 
-    def debug
-      return ""
-      " (soft: #{Printer.soft ? 1 : 0})"
-    end
+    def paint(msg, **opts)
+      color = COLORS.fetch opts.fetch(:color, :default), :default
+      style = opts.fetch :style, []
 
-    def paint(msg, color = :default)
-      Paint[msg, COLORS.fetch(color, color)]
+      Paint[msg, color, *style]
     end
 
     def indent

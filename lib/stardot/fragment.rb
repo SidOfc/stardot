@@ -17,11 +17,29 @@ module Stardot
       @async_tasks_count = 0
 
       unless self.class == Stardot::Fragment
-        @proxy = Proxy.new(self, before: method(:before_action),
-                                 after: method(:after_action))
+        @proxy = Proxy.new self, after: method(:after_action)
       end
 
       setup if respond_to? :setup
+    end
+
+    def prompt(msg, options, **opts)
+      answer     = nil
+      default    = opts[:selected].to_s
+      options    = options.map(&:to_s)
+      print_opts = options.join '/'
+      print_opts = print_opts.sub default, "[#{default}]" unless default.empty?
+
+      warn "#{msg} (#{print_opts}): ", soft: opts[:soft], newline: false
+
+      until options.include? answer
+        answer = read_input_char
+        answer = default if answer.empty?
+      end
+
+      warn '' # create a newline
+
+      answer
     end
 
     def async(&block)
@@ -36,6 +54,7 @@ module Stardot
     def process
       @ts = Time.now.to_i
       (@proxy || self).instance_eval(&@block) if @block
+      self
     end
 
     def self.lazy_loadable
@@ -45,8 +64,12 @@ module Stardot
     end
 
     def self.inherited(fragment_class)
-      define_method fragment_class.name.downcase do |*args, &block|
+      fragment_name = fragment_class.name.downcase
+      define_method fragment_name do |*args, &block|
+        @printer.echo "★ #{fragment_name}", color: :action, style: :bold
+        @printer.indent
         fragment_class.new(*args, **@opts, &block).process
+        @printer.unindent
       end
     end
 
@@ -74,23 +97,16 @@ module Stardot
       end
     end
 
-    def prompt(msg, options, **opts)
-      answer     = nil
-      default    = opts[:selected].to_s
-      options    = options.map(&:to_s)
-      print_opts = options.join '/'
-      print_opts = print_opts.sub default, "[#{default}]" unless default.empty?
+    def interactive?
+      @interactive ||= @opts.fetch(:interactive, STDIN.isatty && any_flag?('-i', '--interactive'))
+    end
 
-      warn "#{msg} (#{print_opts}): ", soft: opts[:soft], newline: false
+    def any_flag?(*flags)
+      flags.find(&ARGV.method(:include?))
+    end
 
-      until options.include? answer
-        answer = STDIN.getch.strip
-        answer = default if answer.empty?
-      end
-
-      warn '' # create a newline
-
-      answer
+    def read_input_char
+      STDIN.getch.strip
     end
 
     def time_passed
@@ -98,19 +114,8 @@ module Stardot
       format '%02d:%02d:%02d', diff_time.hour, diff_time.min, diff_time.sec
     end
 
-    def before_action(name, *_args)
-      unless @last_action == name || Fragment.lazy_loadable[name]
-        @printer.echo "#{@label}::#{name}", color: :action
-      end
-
-      @printer.indent
-    end
-
     def after_action(name, *args, status)
-      @last_action = name
-
       wait_for_async_tasks
-      @printer.unindent
 
       Stardot.logger.append(
         fragment: @label, action: name,
@@ -120,11 +125,11 @@ module Stardot
 
     def progress(done = false)
       loader, color = done ? [@printer.done, :warn] : [@printer.loader, :info]
-      load_frame = @printer.paint loader, color
-      suffix     = @printer.paint 'finished', color
+      load_frame = @printer.paint loader, color: color
+      suffix     = @printer.paint 'finished', color: color
       counters   = @printer.paint(
         "#{@async_tasks_count - @async_tasks.count}/#{@async_tasks_count}",
-        :gray
+        color: :gray
       )
 
       @printer.echo "#{load_frame} #{counters} #{suffix}", soft: 1

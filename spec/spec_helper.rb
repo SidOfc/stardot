@@ -6,12 +6,19 @@ require 'stardot'
 module Helpers
   ROOT = File.join __dir__, 'files'
 
-  def fragment(&block)
+  def fragment(**opts, &block)
     Stardot::Fragment.new(silent: true, &block).process
   end
 
   def as_plugin(name, &block)
     fragment { send(name, &block) }
+  end
+
+  def with_cli_args(*args)
+    original_size = ARGV.size
+    ARGV.concat args
+    yield if block_given?
+    ARGV.slice!(original_size..-1)
   end
 end
 

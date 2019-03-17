@@ -16,16 +16,19 @@ Stardot.configure! log: false do
   #   install :ruby, versions: versions
   # end
 
-  # symlink do
-  #   ln '.dotfiles/bin/',          'bin/'
-  #   ln '.dotfiles/init.vim',      '.config/nvim/'
-  #   ln '.dotfiles/config.fish',   '.config/fish/'
-  #   ln '.dotfiles/alacritty.yml', '.config/alacritty/'
-  #   ln '.dotfiles/.asdfrc'
-  #   ln '.dotfiles/.default-gems'
-  # end
+  symlink do
+    dest './spec/files/dev/null'
 
-  brew do
-    install :fzf
+    ln '.dotfiles/bin/',          'bin/'
+    ln '.dotfiles/init.vim',      '.config/nvim/'
+    ln '.dotfiles/config.fish',   '.config/fish/'
+    ln '.dotfiles/alacritty.yml', '.config/alacritty/'
+    ln '.dotfiles/.asdfrc'
+    ln '.dotfiles/.asdfrc',       '.different-name'
+    ln '.dotfiles/.default-gems'
   end
+
+  # brew do
+  #   install :fzf
+  # end
 end
