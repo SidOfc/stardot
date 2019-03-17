@@ -2,14 +2,39 @@
 
 class Asdf < Stardot::Fragment
   def install(language, **opts)
-    opts[:versions]&.each do |version|
+    return error "plugin #{language} is not installed" unless plugin? language
+
+    *versions = opts.fetch :versions, []
+
+    versions.each do |version|
       async do
-        slow_time = rand 1..6
-
-        sleep slow_time
-
-        ok "❖ #{language} #{version}"
+        if language_installed? language, version
+          info "already installed #{language} #{version}"
+        else
+          persist language, version
+          ok "❖ #{language} #{version}"
+        end
       end
     end
+  end
+
+  private
+
+  def persist(language, version)
+    `asdf install #{language} #{version} >/dev/null`
+  end
+
+  def language_installed?(name, version = nil)
+    @language_cache ||= {}
+    @language_cache[name] ||= `asdf list #{name}`.split("\n").uniq!
+
+    @language_cache[name]&.include? version
+  end
+
+  def plugin?(name)
+    @plugins ||= `asdf plugin-list`.to_s.split("\n")
+
+    n = name.to_s.downcase
+    @plugins.any? { |p| p == n }
   end
 end

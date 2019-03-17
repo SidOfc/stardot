@@ -7,10 +7,12 @@ module Helpers
   ROOT = File.join __dir__, 'files'
 
   def fragment(**opts, &block)
-    Stardot::Fragment.new(silent: true, &block).process
+    Stardot::Fragment.new(opts.merge(silent: true), &block).process
   end
 
   def as_plugin(name, &block)
+    return fragment.send name unless block
+
     fragment { send(name, &block) }
   end
 
