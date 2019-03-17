@@ -5,6 +5,7 @@
 /doc/
 /pkg/
 /spec/reports/
+/spec/files/dev/null/
 /tmp/
 /log/
 
