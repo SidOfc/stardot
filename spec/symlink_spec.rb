@@ -24,37 +24,37 @@ RSpec.describe 'Symlink < Stardot::Fragment' do
     it 'creates a file symlink' do
       symlink.process { ln 'stardot.rb', 'stardot.rb' }
 
-      expect(dest_symlink?('stardot.rb')).to be true
+      expect(dest_symlink?('stardot.rb')).to eq true
     end
 
     it 'uses source filename when destination is absent' do
       symlink.process { ln 'stardot.rb' }
 
-      expect(dest_symlink?('stardot.rb')).to be true
+      expect(dest_symlink?('stardot.rb')).to eq true
     end
 
     it 'creates a directory symlink' do
       symlink.process { ln 'folder/', 'folder/' }
 
-      expect(dest_symlink?('folder')).to be true
+      expect(dest_symlink?('folder')).to eq true
     end
 
     it 'uses source dirname when destination is absent' do
       symlink.process { ln 'folder/' }
 
-      expect(dest_symlink?('folder')).to be true
+      expect(dest_symlink?('folder')).to eq true
     end
 
     it 'errors when source location does not exist' do
       symlink.process { ln '_', 'stardot.rb' }
 
-      expect(statuses.last).to be :error
+      expect(statuses.last).to eq :error
     end
 
     it 'does not overwrite an existing symlink' do
       symlink.process { 2.times { ln 'stardot.rb' } }
 
-      expect(statuses.last).to be :error
+      expect(statuses.last).to eq :error
     end
 
     it 'overwrites an existing symlink using force: true' do
@@ -63,13 +63,13 @@ RSpec.describe 'Symlink < Stardot::Fragment' do
         ln 'stardot.rb', force: true
       end
 
-      expect(statuses.last).to be :ok
+      expect(statuses.last).to eq :ok
     end
 
     it 'overwrites an existing symlink using cli flag "-y"' do
       with_cli_args('-y') { symlink.process { 2.times { ln 'stardot.rb' } } }
 
-      expect(statuses.last).to be :ok
+      expect(statuses.last).to eq :ok
     end
   end
 end

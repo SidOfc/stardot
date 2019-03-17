@@ -19,7 +19,7 @@ RSpec.describe 'Asdf < Stardot::Fragment' do
 
       asdf.process { install :ruby, versions: '2.5.0' }
 
-      expect(statuses.last).to be :ok
+      expect(statuses.last).to eq :ok
     end
 
     it 'skips when specified language version is already installed' do
@@ -29,7 +29,7 @@ RSpec.describe 'Asdf < Stardot::Fragment' do
 
       asdf.process { install :ruby, versions: '3.0.0' }
 
-      expect(statuses.last).to be :info
+      expect(statuses.last).to eq :info
     end
 
     it 'installs multiple versions' do
@@ -38,7 +38,7 @@ RSpec.describe 'Asdf < Stardot::Fragment' do
 
       asdf.process { install :ruby, versions: %w[3.0.0 3.1.0 3.2.0] }
 
-      expect(statuses.last(3)).to eq %i[ok ok ok]
+      expect(statuses.last(3)).to all eq(:ok)
     end
   end
 end
