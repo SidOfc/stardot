@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe 'Symlink' do
+RSpec.describe 'Symlink < Stardot::Fragment' do
   DEST_DIR    = File.join Helpers::ROOT, 'symlink'
   SRC_FILE    = File.join Helpers::ROOT, 'stardot.rb'
   DEST_FILE   = File.join DEST_DIR,      'stardot.rb'

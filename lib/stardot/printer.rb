@@ -3,7 +3,7 @@
 module Stardot
   class Printer
     LOAD_FRAMES = %w[⠋ ⠙ ⠹ ⠸ ⠼ ⠴ ⠦ ⠧ ⠇ ⠏].freeze
-    MUTEX = Mutex.new
+    MUTEX       = Mutex.new.freeze
 
     COLORS = {
       info:   :blue,
@@ -78,7 +78,7 @@ module Stardot
       @soft ||= false
     end
 
-    def self.soft=(bool)
+    def self.soft=(bool) # rubocop:disable Style/TrivialAccessors
       @soft = bool
     end
 
