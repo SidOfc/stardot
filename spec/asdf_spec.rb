@@ -11,7 +11,7 @@ RSpec.describe 'Asdf < Stardot::Fragment' do
     it 'fails when language plugin is not installed' do
       asdf.process { install :does_not_exist, versions: :latest }
 
-      expect(Stardot.logger.entries.last[:status]).to eq :error
+      expect(statuses.last).to eq :error
     end
 
     it 'installs when language plugin is installed' do
