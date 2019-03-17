@@ -2,16 +2,12 @@
 
 RSpec.describe Stardot::Fragment do
   def reply_prompt_with(input, question, options, **settings)
-    answer = nil
-
     with_cli_args '-i' do
       frag = fragment
 
       allow(frag).to receive(:read_input_char).and_return(input)
-      answer = frag.prompt(question, options, **settings)
+      frag.prompt(question, options, **settings)
     end
-
-    answer
   end
 
   describe '#prompt' do

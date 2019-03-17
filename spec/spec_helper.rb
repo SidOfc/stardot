@@ -23,8 +23,9 @@ module Helpers
   def with_cli_args(*args)
     original_size = ARGV.size
     ARGV.concat args
-    yield if block_given?
+    result = yield if block_given?
     ARGV.slice!(original_size..-1)
+    result
   end
 end
 
