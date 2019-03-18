@@ -6,6 +6,13 @@ require 'stardot'
 module Helpers
   ROOT_DIR = File.join __dir__, 'files'
 
+  def reply_with(input, frag = fragment, &block)
+    with_cli_args '-i' do
+      allow(frag).to receive(:read_input_char).and_return(input)
+      frag.instance_eval(&block)
+    end
+  end
+
   def statuses
     Stardot.logger.entries.map { |entry| entry[:status] }
   end

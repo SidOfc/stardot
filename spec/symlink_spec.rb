@@ -72,6 +72,15 @@ RSpec.describe 'Symlink' do
       expect(statuses.last).to eq :ok
     end
 
+    it 'prompts to overwrite an existing symlink using cli flag "-i"' do
+      with_cli_args('-i') do
+        symlink.process { ln 'stardot.rb' }
+        reply_with('n', symlink) { ln 'stardot.rb' }
+      end
+
+      expect(statuses.last).to eq :info
+    end
+
     it 'supports globbing the source location' do
       symlink.process { ln '*.txt' }
 
