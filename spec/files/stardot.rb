@@ -12,7 +12,7 @@ symlink do
 end
 
 brew do
-  install :alacritty, options: ['--HEAD']
+  install :alacritty, '--HEAD'
   install :fish
   install :tmux
   install :neovim

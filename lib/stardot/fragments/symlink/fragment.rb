@@ -3,9 +3,13 @@
 class Symlink < Stardot::Fragment
   def ln(from = src, to = dest, **opts)
     from = expand_from from
-    to   = expand_to to, from
+
+    return from.each { |f| ln(f, to, **opts) } if from.is_a? Array
+    return if from.end_with? '/.', '/..'
+
+    to      = expand_to to, from
     allowed = opts.fetch :force, any_flag?('-y') || !File.exist?(to)
-    allowed = prompt("overwrite: #{sp(to)}", %w[y n], selected: 'n') == 'y' \
+    allowed = prompt("overwrite #{sp(to)}?", %w[y n], selected: 'n') == 'y' \
       if !allowed && interactive?
 
     if !File.exist?(from)
@@ -14,7 +18,7 @@ class Symlink < Stardot::Fragment
       persist from, to
       ok "#{sp(from)} to #{sp(to)}"
     else
-      error "did not create #{sp(to)} because it already exists"
+      info "did not create #{sp(to)} because it already exists"
     end
   end
 
@@ -32,7 +36,12 @@ class Symlink < Stardot::Fragment
 
   def expand_from(from)
     from = File.join src, from unless from.start_with? '/'
-    from
+    glob = Dir.glob from
+
+    return from unless glob.any?
+    return glob.first if glob.count == 1
+
+    glob
   end
 
   def expand_to(to, from)

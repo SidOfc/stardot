@@ -9,26 +9,25 @@ Stardot.configure! log: false do
   # exit if prompt('initialize dotfiles', %w[y n], selected: 'y') == 'n'
 
   # asdf do
-  #   versions = (1..3).flat_map do |major|
-  #     (2..2).map { |minor| [major, minor, 0].join '.' }
-  #   end
-
-  #   install :ruby, versions: versions
+  #   install :ruby, versions: %w[2.4.0 2.5.0 2.6.0]
   # end
 
-  symlink do
-    dest './sandbox'
+  # symlink do
+  #   dest './sandbox'
 
-    ln '.dotfiles/bin/',          'bin/'
-    ln '.dotfiles/init.vim',      '.config/nvim/'
-    ln '.dotfiles/config.fish',   '.config/fish/'
-    ln '.dotfiles/alacritty.yml', '.config/alacritty/'
-    ln '.dotfiles/.asdfrc'
-    ln '.dotfiles/.asdfrc',       '.different-name'
-    ln '.dotfiles/.default-gems'
-  end
+  #   # ln '.dotfiles/.*'
+
+  #   ln '.dotfiles/bin/',          'bin/'
+  #   ln '.dotfiles/init.vim',      '.config/nvim/'
+  #   ln '.dotfiles/config.fish',   '.config/fish/'
+  #   ln '.dotfiles/alacritty.yml', '.config/alacritty/'
+  #   ln '.dotfiles/.asdfrc'
+  #   ln '.dotfiles/.asdfrc',       '.different-name'
+  #   ln '.dotfiles/.default-gems'
+  # end
 
   # brew do
   #   install :fzf
+  #   install :macvim
   # end
 end

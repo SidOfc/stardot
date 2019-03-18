@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-RSpec.describe 'Asdf < Stardot::Fragment' do
+RSpec.describe 'Asdf' do
   describe '#install' do
-    let(:asdf) do
+    let :asdf do
       asdf = as_plugin :asdf
-      allow(asdf).to receive(:persist).and_return(true)
+      allow(asdf).to receive(:persist_installation).and_return(true)
       asdf
     end
 

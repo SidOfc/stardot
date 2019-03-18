@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe 'Symlink < Stardot::Fragment' do
+RSpec.describe 'Symlink' do
   def dest_symlink?(*loc)
     File.symlink?(File.join(symlink.dest, *loc))
   end
@@ -54,7 +54,7 @@ RSpec.describe 'Symlink < Stardot::Fragment' do
     it 'does not overwrite an existing symlink' do
       symlink.process { 2.times { ln 'stardot.rb' } }
 
-      expect(statuses.last).to eq :error
+      expect(statuses.last).to eq :info
     end
 
     it 'overwrites an existing symlink using force: true' do
@@ -70,6 +70,20 @@ RSpec.describe 'Symlink < Stardot::Fragment' do
       with_cli_args('-y') { symlink.process { 2.times { ln 'stardot.rb' } } }
 
       expect(statuses.last).to eq :ok
+    end
+
+    it 'supports globbing the source location' do
+      symlink.process { ln '*.txt' }
+
+      [1, 2, 3].each { |i| expect(dest_symlink?("file-#{i}.txt")).to eq true }
+    end
+
+    it 'ignores "." and ".."' do
+      %w[. ..]. each do |dot_dir|
+        symlink.process { ln '.' }
+
+        expect(dest_symlink?('.')).to eq false
+      end
     end
   end
 end
