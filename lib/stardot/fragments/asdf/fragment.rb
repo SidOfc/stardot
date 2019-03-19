@@ -30,7 +30,7 @@ class Asdf < Stardot::Fragment
       end
     end
 
-    # everything is confirmed, run stored procs asynchronous
+    # everything is confirmed, run stored procs (as)ynchronous
     tasks.each { |t| opts[:async] == false ? t.call : async(&t) }
   end
 
