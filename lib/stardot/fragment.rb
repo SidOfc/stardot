@@ -33,12 +33,16 @@ module Stardot
 
       warn "#{msg} (#{print_opts}): ", soft: opts[:soft], newline: false
 
+      Printer::MUTEX.lock
+
       until options.include? answer
         answer = read_input_char
         answer = default if answer.empty?
       end
 
-      warn '' # create a newline
+      Printer::MUTEX.unlock
+
+      printer.echo answer, indent: '', color: :default # create a newline
 
       answer
     end
@@ -116,7 +120,7 @@ module Stardot
     end
 
     def any_flag?(*flags)
-      flags.find(&ARGV.method(:include?))
+      flags.any?(&ARGV.method(:include?))
     end
 
     def read_input_char

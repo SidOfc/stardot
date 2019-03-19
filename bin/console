@@ -8,9 +8,9 @@ require 'stardot'
 Stardot.configure! log: false do
   # exit if prompt('initialize dotfiles', %w[y n], selected: 'y') == 'n'
 
-  # asdf do
-  #   install :ruby, versions: %w[2.4.0 2.5.0 2.6.0]
-  # end
+  asdf do
+    install :ruby, versions: %w[2.4.0 2.5.0 2.6.0]
+  end
 
   # symlink do
   #   dest './sandbox'

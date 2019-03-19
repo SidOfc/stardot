@@ -40,9 +40,10 @@ module Stardot
       return if @silent
 
       msg = paint(msg, **opts) if opts[:color]
+      indent = opts[:indent] || Printer.indent
 
       MUTEX.synchronize do
-        print control_sequences(opts) + Printer.indent + msg
+        print control_sequences(opts) + indent + msg
         print "\n" unless opts[:newline] == false
       end
     end

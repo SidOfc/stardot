@@ -6,6 +6,10 @@ require 'stardot'
 module Helpers
   ROOT_DIR = File.join __dir__, 'files'
 
+  def one_of(*any)
+    any.sample
+  end
+
   def reply_with(input, frag = fragment, &block)
     with_cli_args '-i' do
       allow(frag).to receive(:read_input_char).and_return(input)

@@ -16,6 +16,7 @@ RSpec.describe 'Asdf' do
 
     it 'installs when language plugin is installed' do
       allow(asdf).to receive(:plugin?).with(:ruby).and_return(true)
+      allow(asdf).to receive(:language_installed?).and_return(false)
 
       asdf.process { install :ruby, versions: '2.5.0' }
 
@@ -28,6 +29,28 @@ RSpec.describe 'Asdf' do
         .with(:ruby, '3.0.0').and_return(true)
 
       asdf.process { install :ruby, versions: '3.0.0' }
+
+      expect(statuses.last).to eq :info
+    end
+
+    it 'force reinstalls specified language version with cli flag "-y"' do
+      allow(asdf).to receive(:plugin?).with(:ruby).and_return(true)
+      allow(asdf).to receive(:language_installed?)
+        .with(:ruby, '3.0.0').and_return(true)
+
+      with_cli_args('-y') { asdf.process { install :ruby, versions: '3.0.0' } }
+
+      expect(statuses.last).to eq :info
+    end
+
+    it 'prompts to reinstall specified language version with cli flag "-i"' do
+      allow(asdf).to receive(:plugin?).with(:ruby).and_return(true)
+      allow(asdf).to receive(:language_installed?)
+        .with(:ruby, '3.0.0').and_return(true)
+
+      with_cli_args('-i') do
+        reply_with('y', asdf) { install :ruby, versions: '3.0.0', async: false }
+      end
 
       expect(statuses.last).to eq :info
     end

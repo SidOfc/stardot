@@ -6,16 +6,32 @@ class Asdf < Stardot::Fragment
 
     *versions = opts.fetch :versions, []
 
-    versions.each do |version|
-      async do
-        if language_installed? language, version
-          info "already installed #{language} #{version}"
-        else
+    tasks = versions.map do |version|
+      installed = language_installed? language, version
+      reinstall = installed && any_flag?('-y') || (interactive? &&
+                  prompt("reinstall #{language} #{version}?",
+                         %w[y n], selected: 'n') == 'y')
+
+      # store async code in a proc so that we can prompt every version
+      # synchronous first, then kick off installs later
+      proc do
+        if reinstall || !installed
+          # FIXME: implement uninstall before reinstall
           persist_installation language, version
-          ok "❖ #{language} #{version}"
+
+          if reinstall
+            info "❖ reinstalled #{language} #{version}"
+          else
+            ok "❖ #{language} #{version}"
+          end
+        else
+          info "❖ already installed #{language} #{version}"
         end
       end
     end
+
+    # everything is confirmed, run stored procs asynchronous
+    tasks.each { |t| opts[:async] == false ? t.call : async(&t) }
   end
 
   private
@@ -26,8 +42,7 @@ class Asdf < Stardot::Fragment
 
   def language_installed?(name, version = nil)
     @language_cache ||= {}
-    @language_cache[name] ||= `asdf list #{name}`.split("\n").uniq!
-
+    @language_cache[name] ||= `asdf list #{name}`.split("\n").map(&:strip).uniq
     @language_cache[name]&.include? version
   end
 
