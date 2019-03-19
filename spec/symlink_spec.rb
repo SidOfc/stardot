@@ -86,9 +86,9 @@ RSpec.describe 'Symlink' do
 
     it 'ignores "." and ".."' do
       %w[. ..]. each do |dot_dir|
-        symlink.ln '.'
+        symlink.ln dot_dir
 
-        expect(dest_symlink?('.')).to eq false
+        expect(dest_symlink?(dot_dir)).to eq false
       end
     end
   end
