@@ -8,10 +8,8 @@ RSpec.describe 'Symlink' do
   let(:symlink) { as_plugin :symlink }
 
   before :each do
-    symlink.process do
-      src  Helpers::ROOT_DIR
-      dest File.join(Helpers::ROOT_DIR, 'symlink')
-    end
+    symlink.src  Helpers::ROOT_DIR
+    symlink.dest File.join(Helpers::ROOT_DIR, 'symlink')
 
     FileUtils.mkdir_p symlink.dest
   end
@@ -22,52 +20,50 @@ RSpec.describe 'Symlink' do
 
   describe '#ln' do
     it 'creates a file symlink' do
-      symlink.process { ln 'stardot.rb', 'stardot.rb' }
+      symlink.ln 'stardot.rb', 'stardot.rb'
 
       expect(dest_symlink?('stardot.rb')).to eq true
     end
 
     it 'uses source filename when destination is absent' do
-      symlink.process { ln 'stardot.rb' }
+      symlink.ln 'stardot.rb'
 
       expect(dest_symlink?('stardot.rb')).to eq true
     end
 
     it 'creates a directory symlink' do
-      symlink.process { ln 'folder/', 'folder/' }
+      symlink.ln 'folder/', 'folder/'
 
       expect(dest_symlink?('folder')).to eq true
     end
 
     it 'uses source dirname when destination is absent' do
-      symlink.process { ln 'folder/' }
+      symlink.ln 'folder/'
 
       expect(dest_symlink?('folder')).to eq true
     end
 
     it 'errors when source location does not exist' do
-      symlink.process { ln '_', 'stardot.rb' }
+      symlink.ln '_', 'stardot.rb'
 
       expect(statuses.last).to eq :error
     end
 
     it 'does not overwrite an existing symlink' do
-      symlink.process { 2.times { ln 'stardot.rb' } }
+      2.times { symlink.ln 'stardot.rb' }
 
       expect(statuses.last).to eq :info
     end
 
     it 'overwrites an existing symlink using force: true' do
-      symlink.process do
-        ln 'stardot.rb'
-        ln 'stardot.rb', force: true
-      end
+      symlink.ln 'stardot.rb'
+      symlink.ln 'stardot.rb', force: true
 
       expect(statuses.last).to eq :ok
     end
 
     it 'overwrites an existing symlink using cli flag "-y"' do
-      with_cli_args('-y') { symlink.process { 2.times { ln 'stardot.rb' } } }
+      with_cli_args('-y') { 2.times { symlink.ln 'stardot.rb' } }
 
       expect(statuses.last).to eq :ok
     end
@@ -76,21 +72,21 @@ RSpec.describe 'Symlink' do
       expect(symlink).to receive :prompt
 
       with_cli_args('-i') do
-        symlink.process { ln 'stardot.rb' }
+        symlink.ln 'stardot.rb'
 
         reply_with(one_of('y', 'n'), symlink) { ln 'stardot.rb' }
       end
     end
 
     it 'supports globbing the source location' do
-      symlink.process { ln '*.txt' }
+      symlink.ln '*.txt'
 
       [1, 2, 3].each { |i| expect(dest_symlink?("file-#{i}.txt")).to eq true }
     end
 
     it 'ignores "." and ".."' do
       %w[. ..]. each do |dot_dir|
-        symlink.process { ln '.' }
+        symlink.ln '.'
 
         expect(dest_symlink?('.')).to eq false
       end
