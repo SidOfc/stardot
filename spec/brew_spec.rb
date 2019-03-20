@@ -21,5 +21,29 @@ RSpec.describe 'Brew' do
 
       expect(statuses.last(2)).to eq %i[ok info]
     end
+
+    it 'prompts to update an installed package with cli flag "-i"' do
+      expect(brew).to receive(:prompt)
+
+      allow(brew).to receive(:version_of).with(:fzf).and_return('0.17.0')
+      allow(brew).to receive(:outdated_packages).and_return('fzf' => '0.17.5')
+
+      with_cli_args '-i' do
+        reply_with(one_of('y', 'n'), brew) { install :fzf }
+      end
+    end
+
+    it 'updates without prompting when cli flag "-y" is passed' do
+      expect(brew).to receive(:perform_update)
+
+      allow(brew).to receive(:version_of).with(:fzf).and_return('0.17.0')
+      allow(brew).to receive(:outdated_packages).and_return('fzf' => '0.17.5')
+
+      with_cli_args '-y' do
+        brew.install :fzf
+      end
+
+      expect(statuses.last).to eq :ok
+    end
   end
 end

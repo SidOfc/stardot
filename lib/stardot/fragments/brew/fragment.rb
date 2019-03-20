@@ -15,10 +15,12 @@ class Brew < Stardot::Fragment
       }
 
       ok "installed brew package: #{package} #{info_version}"
-    elsif new_version && interactive?
-      update = prompt("#{package} #{version} is outdated, update \
-                      to version #{new_version}?".gsub(/\s+/, ' '),
-                      %w[y n], selected: 'y') == 'y'
+    elsif new_version
+      update =
+        any_flag?('-y') || interactive? &&
+                           prompt("#{package} #{version} is outdated, update \
+                                  to version #{new_version}?".gsub(/\s+/, ' '),
+                                  %w[y n], selected: 'y') == 'y'
 
       return info "#{package} update to version #{new_version} skipped" \
         unless update
@@ -27,7 +29,6 @@ class Brew < Stardot::Fragment
       wait_for_async_tasks progress: {
         text: "updating #{package} to version #{new_version}"
       }
-
 
       ok "#{package} updated to version #{new_version}"
     else
