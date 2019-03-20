@@ -25,7 +25,7 @@ class Asdf < Stardot::Fragment
             ok "❖ #{language} #{version}"
           end
         else
-          info "❖ already installed #{language} #{version}"
+          info "❖ #{language} #{version} is already installed"
         end
       end
     end
@@ -37,7 +37,7 @@ class Asdf < Stardot::Fragment
   private
 
   def persist_installation(language, version)
-    `asdf install #{language} #{version} >/dev/null`
+    `asdf install #{language} #{version} >/dev/null 2>&1`
   end
 
   def language_installed?(name, version = nil)

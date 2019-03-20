@@ -26,8 +26,22 @@ Stardot.configure! log: false do
   #   ln '.dotfiles/.default-gems'
   # end
 
-  # brew do
-  #   install :fzf
-  #   install :macvim
-  # end
+  brew do
+    install :asdf
+    install :fish
+    install :ripgrep
+    install :fzf
+    install :autojump
+    install :tmux
+    install :neovim
+    install :wget
+    install :gnupg
+    install :alacritty
+    install :grip
+    install :graphicsmagick
+    install :imagemagick
+    install :tree
+    install 'pinentry-mac'
+    install 'youtube-dl'
+  end
 end

@@ -127,8 +127,8 @@ module Stardot
       STDIN.getch.strip
     end
 
-    def time_passed
-      diff_time = Time.at(Time.now.to_i - @ts).utc
+    def time_passed(initial_time = @ts)
+      diff_time = Time.at(Time.now.to_i - initial_time).utc
       format '%02d:%02d:%02d', diff_time.hour, diff_time.min, diff_time.sec
     end
 
@@ -141,20 +141,27 @@ module Stardot
       current_action nil
     end
 
-    def progress(done = false)
+    def progress(done = false, **opts)
+      soft          = done ? !opts.fetch(:sticky, false) : true
       loader, color = done ? [printer.done, :warn] : [printer.loader, :info]
-      load_frame = printer.paint loader, color: color
-      suffix     = printer.paint 'finished', color: color
-      counters   = printer.paint(
+      load_frame    = printer.paint loader, color: color
+      suffix        = printer.paint opts.fetch(:text, 'finished'), color: color
+
+      timer    = printer.paint "[#{time_passed(@async_start)}]",
+                               color: (done ? :default : :gray)
+      counters = printer.paint(
         "#{@async_tasks_count - @async_tasks.count}/#{@async_tasks_count}",
         color: :gray
       )
 
-      printer.echo "#{load_frame} #{counters} #{suffix}", soft: 1
+      printer.echo "#{load_frame} #{timer} #{counters} #{suffix}", soft: soft
     end
 
-    def wait_for_async_tasks
+    def wait_for_async_tasks(**opts)
       return if (@async_tasks_count = @async_tasks.count).zero?
+
+      progress_opts = opts.fetch :progress, {}
+      @async_start  = Time.now.to_i
 
       printer.reset!
 
@@ -165,11 +172,11 @@ module Stardot
         Stardot.unwatch(*done)
         done.each(&:join)
 
-        progress
+        progress(false, **progress_opts)
         sleep 1.0 / 30
       end
 
-      progress true
+      progress(true, **progress_opts)
     end
   end
 end
