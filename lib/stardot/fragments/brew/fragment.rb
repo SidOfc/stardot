@@ -9,10 +9,9 @@ class Brew < Stardot::Fragment
       info_version = brew_info(package)[:version]
       packages[package.to_s] = 'latest'
 
-      async { persist_installation(package, *flags) }
-      wait_for_async_tasks progress: {
-        text: "installing #{package} #{info_version}"
-      }
+      show_loader "installing #{package} #{info_version}" do
+        persist_installation(package, *flags)
+      end
 
       ok "installed brew package: #{package} #{info_version}"
     elsif new_version
@@ -25,10 +24,9 @@ class Brew < Stardot::Fragment
       return info "#{package} update to version #{new_version} skipped" \
         unless update
 
-      async { perform_update package }
-      wait_for_async_tasks progress: {
-        text: "updating #{package} to version #{new_version}"
-      }
+      show_loader "updating #{package} to version #{new_version}" do
+        perform_update package
+      end
 
       ok "#{package} updated to version #{new_version}"
     else
@@ -64,18 +62,13 @@ class Brew < Stardot::Fragment
   def packages
     return @packages if @packages
 
-    async do
+    show_loader 'fetching package information', sticky: true do
       @packages =
         JSON.parse(`brew info --json=v1 --installed`)
             .each_with_object({}) do |pkg, h|
               h[pkg['name']] = pkg['installed'].last['version']
             end
     end
-
-    wait_for_async_tasks progress: {
-      text: 'fetching package information',
-      sticky: true
-    }
 
     @packages
   end

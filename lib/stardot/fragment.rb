@@ -157,6 +157,11 @@ module Stardot
       printer.echo "#{load_frame} #{timer} #{counters} #{suffix}", soft: soft
     end
 
+    def show_loader(msg = 'finished', **opts, &block)
+      async(&block)
+      wait_for_async_tasks progress: { **opts, text: msg }
+    end
+
     def wait_for_async_tasks(**opts)
       return if (@async_tasks_count = @async_tasks.count).zero?
 
