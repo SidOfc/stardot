@@ -94,6 +94,10 @@ module Stardot
       !Fragment.lazy_loadable[name].nil?
     end
 
+    def interactive?
+      @interactive ||= STDIN.isatty && @opts.fetch(:interactive, any_flag?('-i', '--interactive'))
+    end
+
     private
 
     STATUSES.each do |status|
@@ -113,10 +117,6 @@ module Stardot
     def current_action(name = nil)
       @current_action = name if name
       @current_action
-    end
-
-    def interactive?
-      @interactive ||= @opts.fetch(:interactive, STDIN.isatty && any_flag?('-i', '--interactive'))
     end
 
     def any_flag?(*flags)
