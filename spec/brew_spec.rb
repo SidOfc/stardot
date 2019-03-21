@@ -7,19 +7,26 @@ RSpec.describe 'Brew' do
       allow(brew).to receive(:persist_installation).and_return(true)
       allow(brew).to receive(:perform_update).and_return(true)
       allow(brew).to receive(:packages).and_return({})
+      allow(brew).to receive(:outdated_packages).and_return({})
       brew
     end
 
     it 'installs a package' do
+      allow(brew).to receive(:brew_info).and_return(
+        name: 'asdf', version: '0.7.0'
+      )
+
       brew.process { install :asdf }
 
       expect(statuses.last).to eq :ok
     end
 
     it 'skips when package is already installed' do
-      brew.process { 2.times { install :asdf } }
+      allow(brew).to receive(:packages).and_return('asdf' => '0.7.0')
 
-      expect(statuses.last(2)).to eq %i[ok info]
+      brew.process { install :asdf }
+
+      expect(statuses.last).to eq :info
     end
 
     it 'prompts to update an installed package with cli flag "-i"' do

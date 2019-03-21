@@ -56,7 +56,7 @@ class Brew < Stardot::Fragment
     raw = JSON.parse(`brew info #{package} --json`.to_s).first
 
     { name: package,
-      version: raw&.dig('versions', 'stable') || 'unknown' }
+      version: raw&.dig('versions', 'stable') }
   end
 
   def packages
