@@ -58,9 +58,24 @@ module Stardot
       blk = block || @block
       @ts = Time.now.to_i
 
+      instance_eval(&self.class.prerequisites.shift) until self.class.prerequisites.empty?
+
       (@proxy || self).instance_eval(&blk) if blk
 
       self
+    end
+
+    def self.missing_binary(cmd, mtd = nil, &block)
+      return cmd if which cmd
+
+      block = proc { send mtd } if mtd && block.nil?
+      prerequisites << block
+
+      cmd
+    end
+
+    def self.prerequisites
+      @prerequisites ||= []
     end
 
     def self.lazy_loadable
@@ -98,21 +113,32 @@ module Stardot
       @interactive ||= STDIN.isatty && @opts.fetch(:interactive, any_flag?('-i', '--interactive'))
     end
 
-    private
+    def status_echo(status, message = '', **opts)
+      printer.echo(message, **{ color: status }.merge(opts))
 
-    STATUSES.each do |status|
-      define_method status do |message = nil, **opts|
-        return unless message
+      Stardot.logger.append(
+        fragment: id, action: current_action, status: status
+      )
 
-        printer.echo message, **{ color: status }.merge(opts)
+      status
+    end
 
-        Stardot.logger.append(
-          fragment: id, action: current_action, status: status
-        )
+    STATUSES.each do |s|
+      define_method(s) { |msg = '', **opts| status_echo(s, msg, **opts) }
+    end
 
-        status
+    def self.which(cmd)
+      exts = ENV['PATHEXT'] ? ENV['PATHEXT'].split(';') : ['']
+
+      ENV['PATH'].split(File::PATH_SEPARATOR).find do |path|
+        exts.find do |ext|
+          exe = File.join(path, "#{cmd}#{ext}")
+          exe if File.executable?(exe) && !File.directory?(exe)
+        end
       end
     end
+
+    private
 
     def current_action(name = nil)
       @current_action = name if name
@@ -136,7 +162,7 @@ module Stardot
       current_action name
     end
 
-    def after_action(name, *args, status)
+    def after_action(_name, *_args)
       wait_for_async_tasks
       current_action nil
     end

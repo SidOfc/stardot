@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class Brew < Stardot::Fragment
+  missing_binary :brew, :install_homebrew
+
   def install(package, *flags, **opts)
     version     = version_of package
     new_version = outdated_packages[package.to_s] if version
@@ -35,6 +37,10 @@ class Brew < Stardot::Fragment
   end
 
   private
+
+  def install_homebrew
+    `curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install >/dev/null 2>&1`
+  end
 
   def perform_update(package)
     `brew upgrade #{package} >/dev/null 2>&1`

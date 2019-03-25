@@ -1,6 +1,12 @@
 # frozen_string_literal: true
 
 RSpec.describe Stardot::Fragment do
+  it 'creates a #status_echo wrapped method for every status' do
+    Stardot::Fragment::STATUSES.each do |status|
+      expect(fragment).to respond_to status
+    end
+  end
+
   describe '#prompt' do
     it 'prompts for user input' do
       answer = reply_with('y') { prompt 'prompt text', %w[y n] }
@@ -34,6 +40,56 @@ RSpec.describe Stardot::Fragment do
     it 'is false when STDIN is not a tty and { interactive: true } option is passed' do
       allow(STDIN).to receive(:isatty).and_return(false)
       expect(fragment(interactive: true).interactive?).to eq false
+    end
+  end
+
+  describe '#status_echo' do
+    it 'returns given status' do
+      expect(fragment.status_echo(:ok)).to eq :ok
+    end
+
+    it 'adds a log entry with given status' do
+      fragment.status_echo :ok
+
+      expect(Stardot.logger.entries.last[:status]).to eq :ok
+    end
+  end
+
+  describe '#process' do
+    it 'runs and clears prerequisites when called for the first time' do
+      frag = fragment
+
+      allow(frag.class).to receive(:which).with(:program1).and_return(false)
+      allow(frag.class).to receive(:which).with(:program2).and_return(false)
+
+      frag.class.missing_binary(:program1) { 'install binary "program1"' }
+      frag.class.missing_binary(:program2) { 'install binary "program2"' }
+
+      expect(frag.class.prerequisites.size).to eq 2
+
+      frag.process
+
+      expect(frag.class.prerequisites.size).to eq 0
+    end
+  end
+
+  describe '.missing_binary' do
+    it 'adds a prerequisite if command does not exist' do
+      frag = fragment
+
+      allow(frag.class).to receive(:which).with(:program).and_return(false)
+      frag.class.missing_binary(:program) { 'install binary "program"' }
+
+      expect(frag.class.prerequisites).not_to be_empty
+    end
+
+    it 'does not add a prerequisite if command exists' do
+      frag = fragment
+
+      allow(frag.class).to receive(:which).with(:frag).and_return(true)
+      frag.class.missing_binary(:frag) { 'should install binary "frag"' }
+
+      expect(frag.class.prerequisites).to be_empty
     end
   end
 end

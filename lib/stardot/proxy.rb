@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Stardot
-  class Proxy
+  class Proxy < BasicObject
     def initialize(target, **opts)
       @target = target
       @before = opts[:before]

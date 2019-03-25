@@ -12,19 +12,19 @@ Stardot.configure! log: false do
     install :ruby, versions: %w[2.4.0 2.5.0 2.6.0]
   end
 
-  # symlink do
-  #   dest './sandbox'
+  symlink do
+    dest './sandbox'
 
-  #   # ln '.dotfiles/.*'
+    # ln '.dotfiles/.*'
 
-  #   ln '.dotfiles/bin/',          'bin/'
-  #   ln '.dotfiles/init.vim',      '.config/nvim/'
-  #   ln '.dotfiles/config.fish',   '.config/fish/'
-  #   ln '.dotfiles/alacritty.yml', '.config/alacritty/'
-  #   ln '.dotfiles/.asdfrc'
-  #   ln '.dotfiles/.asdfrc',       '.different-name'
-  #   ln '.dotfiles/.default-gems'
-  # end
+    ln '.dotfiles/bin/',          'bin/'
+    ln '.dotfiles/init.vim',      '.config/nvim/'
+    ln '.dotfiles/config.fish',   '.config/fish/'
+    ln '.dotfiles/alacritty.yml', '.config/alacritty/'
+    ln '.dotfiles/.asdfrc'
+    ln '.dotfiles/.asdfrc',       '.different-name'
+    ln '.dotfiles/.default-gems'
+  end
 
   brew do
     install :asdf

@@ -1,16 +1,26 @@
 # frozen_string_literal: true
 
 RSpec.describe 'Brew' do
-  describe '#install' do
-    let :brew do
-      brew = as_plugin :brew
-      allow(brew).to receive(:persist_installation).and_return(true)
-      allow(brew).to receive(:perform_update).and_return(true)
-      allow(brew).to receive(:packages).and_return({})
-      allow(brew).to receive(:outdated_packages).and_return({})
-      brew
-    end
+  let :brew do
+    brew = as_plugin :brew
+    allow(brew).to receive(:install_homebrew).and_return(true)
+    allow(brew).to receive(:persist_installation).and_return(true)
+    allow(brew).to receive(:perform_update).and_return(true)
+    allow(brew).to receive(:packages).and_return({})
+    allow(brew).to receive(:outdated_packages).and_return({})
+    brew
+  end
 
+  it 'installs homebrew if it is not installed' do
+    allow(brew.class).to receive(:which).with(:brew).and_return(false)
+    brew.class.missing_binary :brew, :install_homebrew
+
+    expect(brew).to receive :install_homebrew
+
+    brew.process
+  end
+
+  describe '#install' do
     it 'installs a package' do
       allow(brew).to receive(:brew_info).and_return(
         name: 'asdf', version: '0.7.0'
