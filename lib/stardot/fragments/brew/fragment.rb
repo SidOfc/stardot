@@ -7,15 +7,19 @@ class Brew < Stardot::Fragment
     version     = version_of package
     new_version = outdated_packages[package.to_s] if version
 
+    if opts[:tap] && !tapped.include?(opts[:tap]) && (!version || new_version)
+      show_loader("tapping \"#{opts[:tap]}\"") { perform_tap opts[:tap] }
+    end
+
     if !version
-      info_version = brew_info(package)[:version]
+      version = brew_info(package)[:version]
       packages[package.to_s] = 'latest'
 
-      show_loader "installing #{package} #{info_version}" do
-        persist_installation(package, *flags)
+      show_loader "installing #{package} #{version}" do
+        perform_installation(package, *flags)
       end
 
-      ok "installed brew package: #{package} #{info_version}"
+      ok "installed brew package: #{package} #{[*flags, version].join(' ')}"
     elsif new_version
       update =
         any_flag?('-y') || interactive? &&
@@ -36,18 +40,30 @@ class Brew < Stardot::Fragment
     end
   end
 
+  def tap(keg)
+    show_loader("tapping \"#{keg}\"") { perform_tap keg }
+  end
+
   private
 
   def install_homebrew
-    `curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install >/dev/null 2>&1`
+    run_silent 'curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install'
+  end
+
+  def perform_tap(keg)
+    run_silent "brew tap #{keg}"
   end
 
   def perform_update(package)
-    `brew upgrade #{package} >/dev/null 2>&1`
+    run_silent "brew upgrade #{package}"
   end
 
-  def persist_installation(package, *flags)
-    `brew install #{package} #{flags.join(' ')} >/dev/null 2>&1`
+  def perform_installation(package, *flags)
+    run_silent "brew install #{package} #{flags.join(' ')}"
+  end
+
+  def tapped
+    @tapped ||= `brew tap`.split("\n").map(&:strip)
   end
 
   def outdated_packages

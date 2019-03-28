@@ -113,6 +113,10 @@ module Stardot
       @interactive ||= STDIN.isatty && @opts.fetch(:interactive, any_flag?('-i', '--interactive'))
     end
 
+    def run_silent(cmd)
+      system "#{cmd} >/dev/null 2>&1"
+    end
+
     def status_echo(status, message = '', **opts)
       printer.echo(message, **{ color: status }.merge(opts))
 

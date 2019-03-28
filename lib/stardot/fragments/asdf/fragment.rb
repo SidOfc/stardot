@@ -2,7 +2,13 @@
 
 class Asdf < Stardot::Fragment
   def install(language, **opts)
-    return error "plugin #{language} is not installed" unless plugin? language
+    unless plugin? language
+      return error "no such plugin: #{language}" unless plugin_exists? language
+
+      show_loader "installing plugin #{language}" do
+        perform_language_installation language
+      end
+    end
 
     *versions = opts.fetch :versions, []
 
@@ -16,8 +22,8 @@ class Asdf < Stardot::Fragment
       # synchronous first, then kick off installs later
       proc do
         if reinstall || !installed
-          # FIXME: implement uninstall before reinstall
-          persist_installation language, version
+          perform_uninstall language, version if reinstall
+          perform_installation language, version
 
           if reinstall
             info "❖ reinstalled #{language} #{version}"
@@ -36,14 +42,33 @@ class Asdf < Stardot::Fragment
 
   private
 
-  def persist_installation(language, version)
-    `asdf install #{language} #{version} >/dev/null 2>&1`
+  def perform_language_installation(language)
+    run_silent "asdf plugin-add #{language}"
+  end
+
+  def perform_uninstall(language, version)
+    run_silent "asdf uninstall #{language} #{version}"
+  end
+
+  def perform_installation(language, version)
+    run_silent "asdf install #{language} #{version}"
+  end
+
+  def perform_uninstall(language, version)
+    run_silent "asdf uninstall #{language} #{version}"
   end
 
   def language_installed?(name, version = nil)
     @language_cache ||= {}
     @language_cache[name] ||= `asdf list #{name}`.split("\n").map(&:strip).uniq
     @language_cache[name]&.include? version
+  end
+
+  def plugin_exists?(name)
+    @existing_plugins ||= `asdf plugin-list-all`.to_s.split("\n").map { |ln| ln.split(/\s+/).first }
+
+    n = name.to_s.downcase
+    @existing_plugins.any? { |p| p == n }
   end
 
   def plugin?(name)

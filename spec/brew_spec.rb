@@ -3,11 +3,13 @@
 RSpec.describe 'Brew' do
   let :brew do
     brew = as_plugin :brew
-    allow(brew).to receive(:install_homebrew).and_return(true)
-    allow(brew).to receive(:persist_installation).and_return(true)
-    allow(brew).to receive(:perform_update).and_return(true)
+    allow(brew).to receive(:install_homebrew)
+    allow(brew).to receive(:perform_installation)
+    allow(brew).to receive(:perform_tap)
+    allow(brew).to receive(:perform_update)
     allow(brew).to receive(:packages).and_return({})
     allow(brew).to receive(:outdated_packages).and_return({})
+    allow(brew).to receive(:tapped).and_return([])
     brew
   end
 
@@ -51,16 +53,50 @@ RSpec.describe 'Brew' do
     end
 
     it 'updates without prompting when cli flag "-y" is passed' do
-      expect(brew).to receive(:perform_update)
+      expect(brew).to receive(:perform_update).with(:fzf)
 
       allow(brew).to receive(:version_of).with(:fzf).and_return('0.17.0')
       allow(brew).to receive(:outdated_packages).and_return('fzf' => '0.17.5')
 
-      with_cli_args '-y' do
+      with_cli_args '-y', '-i' do
         brew.install :fzf
       end
+    end
 
-      expect(statuses.last).to eq :ok
+    it 'runs brew tap when supplied and package is not installed' do
+      expect(brew).to receive(:perform_tap).with('mscharley/homebrew')
+
+      allow(brew).to receive(:version_of).with(:alacritty).and_return(nil)
+      allow(brew).to receive(:brew_info).with(:alacritty).and_return(version: '0.2.9')
+
+      brew.install :alacritty, tap: 'mscharley/homebrew'
+    end
+
+    it 'runs brew tap when supplied and package can be upgraded' do
+      expect(brew).to receive(:perform_tap).with('mscharley/homebrew')
+
+      allow(brew).to receive(:version_of).with(:alacritty).and_return('0.2.6')
+      allow(brew).to receive(:outdated_packages).and_return('alacritty' => '0.2.9')
+
+      brew.install :alacritty, tap: 'mscharley/homebrew'
+    end
+
+    it 'does not run brew tap when supplied tap is already installed' do
+      expect(brew).not_to receive(:perform_tap)
+
+      allow(brew).to receive(:version_of).with(:alacritty).and_return(nil)
+      allow(brew).to receive(:brew_info).with(:alacritty).and_return(version: '0.2.9')
+      allow(brew).to receive(:tapped).and_return(['mscharley/homebrew'])
+
+      brew.install :alacritty, tap: 'mscharley/homebrew'
+    end
+
+    it 'does not run brew tap when supplied and package is already up to date' do
+      expect(brew).not_to receive(:perform_tap)
+
+      allow(brew).to receive(:version_of).with(:alacritty).and_return('0.2.9')
+
+      brew.install :alacritty, tap: 'mscharley/homebrew'
     end
   end
 end
