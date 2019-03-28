@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 RSpec.describe Stardot::Fragment do
+  let(:frag) { fragment }
+
   it 'creates a #status_echo wrapped method for every status' do
     Stardot::Fragment::STATUSES.each do |status|
       expect(fragment).to respond_to status
@@ -24,32 +26,36 @@ RSpec.describe Stardot::Fragment do
   describe '#interactive?' do
     it 'is true when cli flag "-i" is included' do
       allow(STDIN).to receive(:isatty).and_return(true)
-      expect(with_cli_args('-i') { fragment.interactive? }).to eq true
+
+      expect(with_cli_args('-i') { frag.interactive? }).to eq true
     end
 
     it 'is true when { interactive: true } option is passed' do
       allow(STDIN).to receive(:isatty).and_return(true)
+
       expect(fragment(interactive: true).interactive?).to eq true
     end
 
     it 'is false when STDIN is not a tty and cli flag "-i" is included' do
       allow(STDIN).to receive(:isatty).and_return(false)
-      expect(with_cli_args('-i') { fragment.interactive? }).to eq false
+
+      expect(with_cli_args('-i') { frag.interactive? }).to eq false
     end
 
     it 'is false when STDIN is not a tty and { interactive: true } option is passed' do
       allow(STDIN).to receive(:isatty).and_return(false)
+
       expect(fragment(interactive: true).interactive?).to eq false
     end
   end
 
   describe '#status_echo' do
     it 'returns given status' do
-      expect(fragment.status_echo(:ok)).to eq :ok
+      expect(frag.status_echo(:ok)).to eq :ok
     end
 
     it 'adds a log entry with given status' do
-      fragment.status_echo :ok
+      frag.status_echo :ok
 
       expect(Stardot.logger.entries.last[:status]).to eq :ok
     end
@@ -57,8 +63,6 @@ RSpec.describe Stardot::Fragment do
 
   describe '#process' do
     it 'runs and clears prerequisites when called for the first time' do
-      frag = fragment
-
       allow(frag.class).to receive(:which).with(:program1).and_return(false)
       allow(frag.class).to receive(:which).with(:program2).and_return(false)
 
@@ -75,8 +79,6 @@ RSpec.describe Stardot::Fragment do
 
   describe '.missing_binary' do
     it 'adds a prerequisite if command does not exist' do
-      frag = fragment
-
       allow(frag.class).to receive(:which).with(:program).and_return(false)
       frag.class.missing_binary(:program) { 'install binary "program"' }
 
@@ -84,10 +86,8 @@ RSpec.describe Stardot::Fragment do
     end
 
     it 'does not add a prerequisite if command exists' do
-      frag = fragment
-
-      allow(frag.class).to receive(:which).with(:frag).and_return(true)
-      frag.class.missing_binary(:frag) { 'should install binary "frag"' }
+      allow(frag.class).to receive(:which).with(:program).and_return(true)
+      frag.class.missing_binary(:program) { 'install binary "program"' }
 
       expect(frag.class.prerequisites).to be_empty
     end

@@ -14,7 +14,7 @@ RSpec.describe 'Brew' do
   end
 
   it 'installs homebrew if it is not installed' do
-    allow(brew.class).to receive(:which).with(:brew).and_return(false)
+    allow(brew.class).to receive(:which).and_return(false)
     brew.class.missing_binary :brew, :install_homebrew
 
     expect(brew).to receive :install_homebrew
@@ -66,8 +66,8 @@ RSpec.describe 'Brew' do
     it 'runs brew tap when supplied and package is not installed' do
       expect(brew).to receive(:perform_tap).with('mscharley/homebrew')
 
-      allow(brew).to receive(:version_of).with(:alacritty).and_return(nil)
-      allow(brew).to receive(:brew_info).with(:alacritty).and_return(version: '0.2.9')
+      allow(brew).to receive(:version_of).and_return(nil)
+      allow(brew).to receive(:brew_info).and_return(version: '0.2.9')
 
       brew.install :alacritty, tap: 'mscharley/homebrew'
     end
@@ -94,7 +94,7 @@ RSpec.describe 'Brew' do
     it 'does not run brew tap when supplied and package is already up to date' do
       expect(brew).not_to receive(:perform_tap)
 
-      allow(brew).to receive(:version_of).with(:alacritty).and_return('0.2.9')
+      allow(brew).to receive(:version_of).and_return('0.2.9')
 
       brew.install :alacritty, tap: 'mscharley/homebrew'
     end
