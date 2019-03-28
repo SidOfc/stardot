@@ -14,12 +14,34 @@ RSpec.describe 'Brew' do
   end
 
   it 'installs homebrew if it is not installed' do
-    allow(brew.class).to receive(:which).and_return(false)
-    brew.class.missing_binary :brew, :install_homebrew
-
     expect(brew).to receive :install_homebrew
 
+    allow(brew.class).to receive(:which).and_return(false)
+
+    brew.class.missing_binary :brew, :install_homebrew
     brew.process
+  end
+
+  describe '#tap' do
+    it 'taps an untapped keg' do
+      expect(brew).to receive(:perform_tap)
+
+      allow(brew).to receive(:untapped?).and_return(true)
+
+      brew.tap 'mscharley/homebrew'
+
+      expect(statuses.last).to eq :ok
+    end
+
+    it 'does not tap an already tapped keg' do
+      expect(brew).not_to receive(:perform_tap)
+
+      allow(brew).to receive(:untapped?).and_return(false)
+
+      brew.tap 'mscharley/homebrew'
+
+      expect(statuses.last).to eq :info
+    end
   end
 
   describe '#install' do

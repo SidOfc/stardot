@@ -1,15 +1,15 @@
 # frozen_string_literal: true
 
 RSpec.describe 'Asdf' do
-  describe '#install' do
-    let :asdf do
-      asdf = as_plugin :asdf
-      allow(asdf).to receive(:plugin?)
-      allow(asdf).to receive(:perform_installation)
-      allow(asdf).to receive(:perform_language_installation)
-      asdf
-    end
+  let :asdf do
+    asdf = as_plugin :asdf
+    allow(asdf).to receive(:plugin?)
+    allow(asdf).to receive(:perform_installation)
+    allow(asdf).to receive(:perform_language_installation)
+    asdf
+  end
 
+  describe '#install' do
     it 'fails when language plugin can not be installed' do
       allow(asdf).to receive(:plugin_exists?).and_return(false)
 

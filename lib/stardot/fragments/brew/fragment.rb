@@ -7,9 +7,7 @@ class Brew < Stardot::Fragment
     version     = version_of package
     new_version = outdated_packages[package.to_s] if version
 
-    if opts[:tap] && !tapped.include?(opts[:tap]) && (!version || new_version)
-      show_loader("tapping \"#{opts[:tap]}\"") { perform_tap opts[:tap] }
-    end
+    tap opts[:tap] if opts[:tap] && untapped?(opts[:tap]) && (!version || new_version)
 
     if !version
       version = brew_info(package)[:version]
@@ -41,7 +39,12 @@ class Brew < Stardot::Fragment
   end
 
   def tap(keg)
-    show_loader("tapping \"#{keg}\"") { perform_tap keg }
+    if untapped? keg
+      show_loader("tapping #{keg}") { perform_tap keg }
+      ok "tapped #{keg}"
+    else
+      info "already tapped #{keg}"
+    end
   end
 
   private
@@ -64,6 +67,10 @@ class Brew < Stardot::Fragment
 
   def tapped
     @tapped ||= `brew tap`.split("\n").map(&:strip)
+  end
+
+  def untapped?(keg)
+    !tapped.include?(keg)
   end
 
   def outdated_packages
