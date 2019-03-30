@@ -64,13 +64,23 @@ module Stardot
       self
     end
 
+    def self.mtd_or_proc(mtd = nil, &block)
+      block = proc { send mtd } if mtd && block.nil?
+      block
+    end
+
+    def self.missing_file(path, mtd = nil, &block)
+      path = File.expand_path path
+
+      return path if File.exist? path
+
+      prerequisites << mtd_or_proc(mtd, &block)
+    end
+
     def self.missing_binary(cmd, mtd = nil, &block)
       return cmd if which cmd
 
-      block = proc { send mtd } if mtd && block.nil?
-      prerequisites << block
-
-      cmd
+      prerequisites << mtd_or_proc(mtd, &block)
     end
 
     def self.prerequisites

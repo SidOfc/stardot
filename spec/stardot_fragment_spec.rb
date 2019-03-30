@@ -77,17 +77,35 @@ RSpec.describe Stardot::Fragment do
     end
   end
 
+  describe '.missing_file' do
+    let!(:test_path) { File.join Helpers::ROOT_DIR, 'bogus', 'file.txt' }
+
+    it 'adds a prerequisite if file does not exist' do
+      allow(File).to receive(:exist?).with(test_path).and_return(false)
+      frag.class.missing_file(test_path) { nil }
+
+      expect(frag.class.prerequisites).not_to be_empty
+    end
+
+    it 'does not add a prerequisite if file exists' do
+      allow(File).to receive(:exist?).with(test_path).and_return(true)
+      frag.class.missing_file(test_path) { nil }
+
+      expect(frag.class.prerequisites).to be_empty
+    end
+  end
+
   describe '.missing_binary' do
     it 'adds a prerequisite if command does not exist' do
       allow(frag.class).to receive(:which).with(:program).and_return(false)
-      frag.class.missing_binary(:program) { 'install binary "program"' }
+      frag.class.missing_binary(:program) { nil }
 
       expect(frag.class.prerequisites).not_to be_empty
     end
 
     it 'does not add a prerequisite if command exists' do
       allow(frag.class).to receive(:which).with(:program).and_return(true)
-      frag.class.missing_binary(:program) { 'install binary "program"' }
+      frag.class.missing_binary(:program) { nil }
 
       expect(frag.class.prerequisites).to be_empty
     end
