@@ -22,7 +22,7 @@ module Helpers
   end
 
   def fragment(**opts, &block)
-    Stardot::Fragment.new(opts.merge(silent: true), &block).process
+    Stardot::Fragment.new(opts.merge(silent: true, log: true), &block).process
   end
 
   def as_plugin(name, &block)

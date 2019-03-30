@@ -5,43 +5,55 @@ require 'bundler/setup'
 require 'pry'
 require 'stardot'
 
-Stardot.configure! log: false do
+class Sleeper < Stardot::Fragment
+  def yawn(count = 10)
+    count.times do
+      async do
+        n = rand 3..5
+        sleep n
+        ok "yawn done after #{n} seconds"
+      end
+    end
+  end
+end
+
+Stardot.configure! do
+  sleeper { yawn 20 }
+
   # exit if prompt('initialize dotfiles', %w[y n], selected: 'y') == 'n'
 
-  asdf do
-    install :ruby, versions: %w[2.4.0 2.5.0 2.6.0]
-  end
+  # brew do
+  #   install :asdf
+  #   install :fish
+  #   install :ripgrep
+  #   install :fzf
+  #   install :autojump
+  #   install :tmux
+  #   install :neovim
+  #   install :wget
+  #   install :gnupg
+  #   install :alacritty
+  #   install :grip
+  #   install :graphicsmagick
+  #   install :imagemagick
+  #   install :tree
+  #   install 'pinentry-mac'
+  #   install 'youtube-dl'
+  # end
 
-  symlink do
-    dest './sandbox'
+  # asdf do
+  #   install :ruby, versions: %w[2.4.0 2.5.0 2.6.0]
+  # end
 
-    # ln '.dotfiles/.*'
+  # symlink do
+  #   dest './sandbox'
 
-    ln '.dotfiles/bin/',          'bin/'
-    ln '.dotfiles/init.vim',      '.config/nvim/'
-    ln '.dotfiles/config.fish',   '.config/fish/'
-    ln '.dotfiles/alacritty.yml', '.config/alacritty/'
-    ln '.dotfiles/.asdfrc'
-    ln '.dotfiles/.asdfrc',       '.different-name'
-    ln '.dotfiles/.default-gems'
-  end
-
-  brew do
-    install :asdf
-    install :fish
-    install :ripgrep
-    install :fzf
-    install :autojump
-    install :tmux
-    install :neovim
-    install :wget
-    install :gnupg
-    install :alacritty
-    install :grip
-    install :graphicsmagick
-    install :imagemagick
-    install :tree
-    install 'pinentry-mac'
-    install 'youtube-dl'
-  end
+  #   ln '.dotfiles/bin/',          'bin/'
+  #   ln '.dotfiles/init.vim',      '.config/nvim/'
+  #   ln '.dotfiles/config.fish',   '.config/fish/'
+  #   ln '.dotfiles/alacritty.yml', '.config/alacritty/'
+  #   ln '.dotfiles/.asdfrc'
+  #   ln '.dotfiles/.asdfrc',       '.different-name'
+  #   ln '.dotfiles/.default-gems'
+  # end
 end

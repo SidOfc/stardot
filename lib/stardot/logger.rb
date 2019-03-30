@@ -2,11 +2,10 @@
 
 module Stardot
   class Logger
-    attr_reader :format, :file, :entries, :path, :dir
+    attr_reader :format, :file, :entries, :path
 
-    def initialize(file_path, **opts)
+    def initialize(file_path = "log/stardot.#{Time.now.to_i}.log", **opts)
       @path    = File.expand_path file_path
-      @dir     = File.dirname @path
       @format  = opts.fetch :format, :yaml
       @entries = []
     end
@@ -15,10 +14,11 @@ module Stardot
       entries << entry
     end
 
-    def persist
+    def persist(location = @path)
+      dir = File.dirname location
       @file ||= begin
                   FileUtils.mkdir_p dir unless Dir.exist? dir
-                  File.open path, 'a'
+                  File.open location, 'a'
                 end
 
       @file.puts content
@@ -26,6 +26,10 @@ module Stardot
 
     def to_s
       puts content
+    end
+
+    def clear
+      @entries.clear
     end
 
     private

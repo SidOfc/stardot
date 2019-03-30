@@ -2,7 +2,7 @@
 
 module Stardot
   class Fragment
-    attr_reader :proxy, :id, :printer
+    attr_reader :proxy, :id, :printer, :opts
 
     STATUSES       = %i[ok error info warn].freeze
     LAZY_LOAD_ROOT =
@@ -14,6 +14,8 @@ module Stardot
       @block             = block
       @printer           = Printer.new(**opts)
       @async_tasks       = []
+      @async_queue       = []
+      @workers           = opts.fetch :workers, Stardot.cores
       @async_tasks_count = 0
 
       unless self.class == Stardot::Fragment
@@ -48,10 +50,7 @@ module Stardot
     end
 
     def async(&block)
-      worker = Thread.new { instance_eval(&block) }
-
-      @async_tasks << worker
-      Stardot.watch worker
+      @async_queue << proc { Thread.new { instance_eval(&block) } }
     end
 
     def process(&block)
@@ -120,9 +119,11 @@ module Stardot
     def status_echo(status, message = '', **opts)
       printer.echo(message, **{ color: status }.merge(opts))
 
-      Stardot.logger.append(
-        fragment: id, action: current_action, status: status
-      )
+      if @opts[:log]
+        Stardot.logger.append(
+          fragment: id, action: current_action, status: status
+        )
+      end
 
       status
     end
@@ -180,7 +181,7 @@ module Stardot
       timer    = printer.paint "[#{time_passed(@async_start)}]",
                                color: (done ? :default : :gray)
       counters = printer.paint(
-        "#{@async_tasks_count - @async_tasks.count}/#{@async_tasks_count}",
+        "#{@async_tasks_count - @async_queue.count - @async_tasks.count}/#{@async_tasks_count}",
         color: :gray
       )
 
@@ -192,13 +193,23 @@ module Stardot
       wait_for_async_tasks progress: { **opts, text: msg }
     end
 
+    def consume_queue
+      while @async_queue.any? && @async_tasks.size < @workers
+        worker = @async_queue.shift.call
+
+        @async_tasks << worker
+        Stardot.watch worker
+      end
+    end
+
     def wait_for_async_tasks(**opts)
-      return if (@async_tasks_count = @async_tasks.count).zero?
+      return if (@async_tasks_count = @async_queue.count).zero?
 
       progress_opts = opts.fetch :progress, {}
       @async_start  = Time.now.to_i
 
       printer.reset!
+      consume_queue
 
       while @async_tasks.any?
         done         = @async_tasks.reject(&:status)
@@ -207,6 +218,7 @@ module Stardot
         Stardot.unwatch(*done)
         done.each(&:join)
 
+        consume_queue
         progress(false, **progress_opts)
         sleep 1.0 / 30
       end

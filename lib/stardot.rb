@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'etc'
 require 'yaml'
 require 'json'
 require 'io/console'
@@ -21,14 +22,15 @@ module Stardot
   end
 
   def self.configure!(**opts, &block)
-    fragment = configure(&block)
-    fragment.process
-    logger.persist unless opts[:log] == false
-    fragment
+    log_file = opts.fetch :log_file, logger.path
+    frag     = configure(&block).process
+
+    logger.persist log_file if frag.opts[:log] == true || opts[:log] == true
+    frag
   end
 
   def self.logger
-    @logger ||= Logger.new "log/stardot.#{Time.now.to_i}.log"
+    @logger ||= Logger.new
   end
 
   def self.watch(*threads)
@@ -44,6 +46,10 @@ module Stardot
   def self.kill
     @watching.each(&:kill)
     exit
+  end
+
+  def self.cores
+    Etc.nprocessors
   end
 end
 
