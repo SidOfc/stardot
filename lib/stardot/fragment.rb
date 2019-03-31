@@ -18,11 +18,6 @@ module Stardot
       @workers           = opts.fetch :workers, Stardot.cores
       @async_tasks_count = 0
 
-      unless self.class == Stardot::Fragment
-        @proxy = Proxy.new self, before: method(:before_action),
-                                 after: method(:after_action)
-      end
-
       setup if respond_to? :setup
     end
 
@@ -59,7 +54,7 @@ module Stardot
 
       instance_eval(&self.class.prerequisites.shift) until self.class.prerequisites.empty?
 
-      (@proxy || self).instance_eval(&blk) if blk
+      instance_eval(&blk) if blk
 
       wait_for_async_tasks
 
@@ -134,9 +129,7 @@ module Stardot
       printer.echo(message, **{ color: status }.merge(opts))
 
       if @opts[:log]
-        Stardot.logger.append(
-          fragment: id, action: current_action, status: status
-        )
+        Stardot.logger.append fragment: id, status: status, message: message
       end
 
       status
@@ -159,11 +152,6 @@ module Stardot
 
     private
 
-    def current_action(name = nil)
-      @current_action = name if name
-      @current_action
-    end
-
     def any_flag?(*flags)
       flags.any?(&ARGV.method(:include?))
     end
@@ -175,14 +163,6 @@ module Stardot
     def time_passed(initial_time = @ts)
       diff_time = Time.at(Time.now.to_i - initial_time).utc
       format '%02d:%02d:%02d', diff_time.hour, diff_time.min, diff_time.sec
-    end
-
-    def before_action(name, *_args)
-      current_action name
-    end
-
-    def after_action(_name, *_args)
-      current_action nil
     end
 
     def progress(done = false, **opts)
