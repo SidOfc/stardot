@@ -2,7 +2,7 @@
 
 module Stardot
   class Fragment
-    attr_reader :proxy, :id, :printer, :opts
+    attr_reader :id, :printer, :opts
 
     STATUSES       = %i[ok error info warn].freeze
     LAZY_LOAD_ROOT =

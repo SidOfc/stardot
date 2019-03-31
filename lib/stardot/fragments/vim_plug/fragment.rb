@@ -12,27 +12,22 @@ class VimPlug < Stardot::Fragment
     async do
       if plug? repo
         perform_fetch repo
-        # show_loader("fetching #{repo}") { perform_fetch repo }
         if up_to_date? repo
-          ok "#{repo} is up to date"
+          info "#{repo} is up to date"
         else
           perform_pull repo
-          # show_loader("updating #{repo}") { perform_pull repo }
           info "updated #{repo}"
         end
       else
         perform_clone repo
-        # show_loader("installing #{repo}") { perform_clone repo }
         ok "installed #{repo}"
       end
     end
   end
 
   def root(path = nil)
-    @path = File.expand_path path if path
-    @path ||= PLUGGED
-
-    @path
+    @root = File.expand_path path if path
+    @root ||= PLUGGED
   end
 
   private

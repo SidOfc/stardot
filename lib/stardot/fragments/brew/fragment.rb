@@ -11,7 +11,7 @@ class Brew < Stardot::Fragment
 
     if !version
       version = brew_info(package)[:version]
-      packages[package.to_s] = 'latest'
+      packages[package.to_s] = version
 
       show_loader "installing #{package} #{version}" do
         perform_installation(package, *flags)

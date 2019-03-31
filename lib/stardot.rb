@@ -11,18 +11,18 @@ require_relative 'stardot/printer'
 require_relative 'stardot/fragment'
 
 module Stardot
-  def self.configure(&block)
+  def self.configure(**opts, &block)
     unless block_given?
       stardot_rb = File.read File.join(__dir__, '../spec/files/stardot.rb')
       block      = proc { instance_eval stardot_rb }
     end
 
-    Fragment.new(&block)
+    Fragment.new(**opts, &block)
   end
 
   def self.configure!(**opts, &block)
     log_file = opts.fetch :log_file, logger.path
-    frag     = configure(&block).process
+    frag     = configure(**opts, &block).process
 
     logger.persist log_file if frag.opts[:log] == true || opts[:log] == true
     frag
