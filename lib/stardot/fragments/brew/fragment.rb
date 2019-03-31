@@ -50,7 +50,9 @@ class Brew < Stardot::Fragment
   private
 
   def install_homebrew
-    run_silent 'curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install'
+    show_loader 'installing homebrew' do
+      run_silent 'curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install'
+    end
   end
 
   def perform_tap(keg)

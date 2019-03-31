@@ -2,21 +2,18 @@
 
 RSpec.describe 'Symlink' do
   def dest_symlink?(*loc)
-    File.symlink?(File.join(symlink.dest, *loc))
+    File.symlink? File.join(symlink.dest, *loc)
   end
 
-  let(:symlink) { as_plugin :symlink }
-
-  before :each do
+  let :symlink do
+    symlink = as_plugin :symlink
     symlink.src  Helpers::ROOT_DIR
     symlink.dest File.join(Helpers::ROOT_DIR, 'symlink')
-
-    FileUtils.mkdir_p symlink.dest
+    symlink
   end
 
-  after :each do
-    FileUtils.rm_rf symlink.dest
-  end
+  before(:each) { FileUtils.mkdir_p symlink.dest }
+  after(:each) { FileUtils.rm_rf symlink.dest }
 
   describe '#ln' do
     it 'creates a file symlink' do

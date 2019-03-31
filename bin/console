@@ -18,9 +18,9 @@ class Sleeper < Stardot::Fragment
 end
 
 Stardot.configure! do
-  sleeper { yawn 20 }
-
   # exit if prompt('initialize dotfiles', %w[y n], selected: 'y') == 'n'
+
+  # sleeper { yawn 20 }
 
   # brew do
   #   install :asdf
@@ -32,7 +32,7 @@ Stardot.configure! do
   #   install :neovim
   #   install :wget
   #   install :gnupg
-  #   install :alacritty
+  #   install :alacritty, tap: 'mscharley/homebrew'
   #   install :grip
   #   install :graphicsmagick
   #   install :imagemagick
@@ -56,4 +56,29 @@ Stardot.configure! do
   #   ln '.dotfiles/.asdfrc',       '.different-name'
   #   ln '.dotfiles/.default-gems'
   # end
+
+  vim_plug do
+    root './sandbox'
+
+    plug 'sheerun/vim-polyglot'
+    plug 'christoomey/vim-tmux-navigator'
+    plug 'chriskempson/base16-vim'
+    plug 'itchyny/lightline.vim'
+    plug 'jreybert/vimagit'
+    plug 'tpope/vim-commentary'
+    plug 'tpope/vim-endwise'
+    plug 'tpope/vim-fugitive'
+    plug 'tpope/vim-repeat'
+    plug 'tpope/vim-eunuch'
+    plug 'tpope/vim-surround'
+    plug 'haya14busa/incsearch.vim'
+    plug 'junegunn/vim-easy-align'
+    plug 'junegunn/fzf.vim'
+    plug 'machakann/vim-highlightedyank'
+    plug 'benmills/vimux'
+    plug 'pangloss/vim-javascript'
+    plug 'metakirby5/codi.vim'
+    plug 'SidOfc/mkdx'
+    plug 'junegunn/vader.vim'
+  end
 end

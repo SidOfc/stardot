@@ -61,6 +61,8 @@ module Stardot
 
       (@proxy || self).instance_eval(&blk) if blk
 
+      wait_for_async_tasks
+
       self
     end
 
@@ -94,7 +96,9 @@ module Stardot
     end
 
     def self.inherited(fragment_class)
-      fragment_name = fragment_class.name.downcase
+      fragment_name = fragment_class.name.split(/(?=[[:upper:]])/)
+                                    .map(&:downcase).join('_')
+
       define_method fragment_name do |*args, &block|
         printer.echo "★ #{fragment_name}", color: :action, style: :bold
         printer.indent
@@ -178,7 +182,6 @@ module Stardot
     end
 
     def after_action(_name, *_args)
-      wait_for_async_tasks
       current_action nil
     end
 
