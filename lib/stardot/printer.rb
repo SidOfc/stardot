@@ -36,6 +36,41 @@ module Stardot
       @frame = 0
     end
 
+    def prompt(msg, options, **opts)
+      default    = opts[:selected].to_s
+      options    = options.map(&:to_s)
+      print_opts = options.join '/'
+      print_opts = print_opts.sub default, "[#{default}]" unless default.empty?
+
+      echo "#{msg} (#{print_opts}): ",
+           soft: opts[:soft], newline: false, color: :warn
+
+      answer = prompt_answer options, default
+
+      echo answer, indent: '', color: :default # create a newline
+
+      answer
+    end
+
+    def read_input_char
+      STDIN.getch.strip
+    end
+
+    def prompt_answer(options, default = nil)
+      answer = nil
+
+      MUTEX.lock
+
+      until options.include? answer
+        answer = read_input_char
+        answer = default if answer.empty?
+      end
+
+      MUTEX.unlock
+
+      answer
+    end
+
     def echo(msg, **opts)
       return if @silent
 

@@ -12,7 +12,7 @@ module Helpers
 
   def reply_with(input, frag = fragment, &block)
     with_cli_args '-i' do
-      allow(frag).to receive(:read_input_char).and_return(input)
+      allow(frag.printer).to receive(:read_input_char).and_return(input)
       frag.instance_eval(&block)
     end
   end

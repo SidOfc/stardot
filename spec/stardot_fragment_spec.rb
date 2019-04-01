@@ -49,18 +49,6 @@ RSpec.describe Stardot::Fragment do
     end
   end
 
-  describe '#status_echo' do
-    it 'returns given status' do
-      expect(frag.status_echo(:ok)).to eq :ok
-    end
-
-    it 'adds a log entry with given status' do
-      frag.status_echo :ok
-
-      expect(Stardot.logger.entries.last[:status]).to eq :ok
-    end
-  end
-
   describe '#process' do
     it 'runs and clears prerequisites when called for the first time' do
       allow(frag.class).to receive(:which).with(:program1).and_return(false)

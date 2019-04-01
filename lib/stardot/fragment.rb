@@ -21,29 +21,6 @@ module Stardot
       setup if respond_to? :setup
     end
 
-    def prompt(msg, options, **opts)
-      answer     = nil
-      default    = opts[:selected].to_s
-      options    = options.map(&:to_s)
-      print_opts = options.join '/'
-      print_opts = print_opts.sub default, "[#{default}]" unless default.empty?
-
-      warn "#{msg} (#{print_opts}): ", soft: opts[:soft], newline: false
-
-      Printer::MUTEX.lock
-
-      until options.include? answer
-        answer = read_input_char
-        answer = default if answer.empty?
-      end
-
-      Printer::MUTEX.unlock
-
-      printer.echo answer, indent: '', color: :default # create a newline
-
-      answer
-    end
-
     def async(&block)
       @async_queue << proc { Thread.new { instance_eval(&block) } }
     end
@@ -125,18 +102,20 @@ module Stardot
       system "#{cmd} >/dev/null 2>&1"
     end
 
-    def status_echo(status, message = '', **opts)
-      printer.echo(message, **{ color: status }.merge(opts))
-
-      if @opts[:log]
-        Stardot.logger.append fragment: id, status: status, message: message
-      end
-
-      status
+    def prompt(msg, options, **opts)
+      printer.prompt(msg, options, **opts)
     end
 
-    STATUSES.each do |s|
-      define_method(s) { |msg = '', **opts| status_echo(s, msg, **opts) }
+    STATUSES.each do |status|
+      define_method status do |message = '', **opts|
+        printer.echo(message, **{ color: status }.merge(opts))
+
+        if @opts[:log]
+          Stardot.logger.append fragment: id, status: status, message: message
+        end
+
+        status
+      end
     end
 
     def self.which(cmd)
@@ -154,10 +133,6 @@ module Stardot
 
     def any_flag?(*flags)
       flags.any?(&ARGV.method(:include?))
-    end
-
-    def read_input_char
-      STDIN.getch.strip
     end
 
     def time_passed(initial_time = @ts)
