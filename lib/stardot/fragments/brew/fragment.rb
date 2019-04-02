@@ -13,7 +13,7 @@ class Brew < Stardot::Fragment
       version = brew_info(package)[:version]
       packages[package.to_s] = version
 
-      show_loader "installing #{package} #{version}" do
+      load_while "installing #{package} #{version}" do
         perform_installation(package, *flags)
       end
 
@@ -28,7 +28,7 @@ class Brew < Stardot::Fragment
       return info "#{package} update to version #{new_version} skipped" \
         unless update
 
-      show_loader "updating #{package} to version #{new_version}" do
+      load_while "updating #{package} to version #{new_version}" do
         perform_update package
       end
 
@@ -40,7 +40,7 @@ class Brew < Stardot::Fragment
 
   def tap(keg)
     if untapped? keg
-      show_loader("tapping #{keg}") { perform_tap keg }
+      load_while("tapping #{keg}") { perform_tap keg }
       ok "tapped #{keg}"
     else
       info "already tapped #{keg}"
@@ -50,7 +50,7 @@ class Brew < Stardot::Fragment
   private
 
   def install_homebrew
-    show_loader 'installing homebrew' do
+    load_while 'installing homebrew' do
       run_silent 'curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install'
     end
   end
@@ -93,7 +93,7 @@ class Brew < Stardot::Fragment
   def packages
     return @packages if @packages
 
-    show_loader 'fetching package information', sticky: true do
+    load_while 'fetching package information', sticky: true do
       @packages =
         JSON.parse(`brew info --json=v1 --installed`)
             .each_with_object({}) do |pkg, h|

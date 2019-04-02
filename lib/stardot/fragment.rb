@@ -177,7 +177,7 @@ module Stardot
       "#{finished}/#{@async_tasks_count}"
     end
 
-    def show_loader(msg = 'finished', **opts, &block)
+    def load_while(msg = 'finished', **opts, &block)
       async(&block)
       wait_for_async_tasks progress: { **opts, text: msg }
     end
@@ -191,22 +191,24 @@ module Stardot
       end
     end
 
-    def wait_for_async_tasks(**opts)
-      return if (@async_tasks_count = @async_queue.count).zero?
+    def clear_finished_tasks
+      done          = @async_tasks.reject(&:status)
+      @async_tasks -= done
 
-      progress_opts = opts.fetch :progress, {}
-      @async_start  = Time.now.to_i
+      Stardot.unwatch(*done)
+      done.each(&:join)
+    end
+
+    def wait_for_async_tasks(**opts)
+      progress_opts      = opts.fetch :progress, {}
+      @async_tasks_count = @async_queue.count
+      @async_start       = Time.now.to_i
 
       printer.reset!
       consume_queue
 
       while @async_tasks.any?
-        done         = @async_tasks.reject(&:status)
-        @async_tasks = @async_tasks.select(&:status)
-
-        Stardot.unwatch(*done)
-        done.each(&:join)
-
+        clear_finished_tasks
         consume_queue
         progress(**progress_opts)
         sleep 1.0 / 30

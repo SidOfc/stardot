@@ -5,7 +5,7 @@ class Asdf < Stardot::Fragment
     unless plugin? language
       return error "no such plugin: #{language}" unless plugin_exists? language
 
-      show_loader "installing plugin #{language}" do
+      load_while "installing plugin #{language}" do
         perform_language_installation language
       end
     end

@@ -60,7 +60,7 @@ class VimPlug < Stardot::Fragment
   end
 
   def install_plug
-    show_loader 'installing vim-plug' do
+    load_while 'installing vim-plug' do
       run_silent "curl -fLo #{PLUG_FILE} --create-dirs #{PLUG_REPO} --silent"
     end
   end
