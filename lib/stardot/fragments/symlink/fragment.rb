@@ -44,11 +44,13 @@ class Symlink < Stardot::Fragment
     glob
   end
 
+  # FIXME: clean this mess up
   def expand_to(to, from)
-    to = File.join dest, to unless to.start_with? '/'
-    to = to.gsub %r{[\/]+\z}, ''
+    no_to = to == dest # not passed, so defaulted to dest
+    to    = File.join dest, to unless to.start_with? '/'
+    to    = to.gsub %r{[\/]+\z}, ''
 
-    if (ext?(from) && !ext?(to)) || (!ext?(from) && Dir.exist?(to))
+    if no_to || !File.directory?(from) && ((ext?(from) && !ext?(to)) || (!ext?(from) && Dir.exist?(to)))
       to = File.join to, File.basename(from)
     end
 

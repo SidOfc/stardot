@@ -22,33 +22,33 @@ Stardot.configure! do
 
   # sleeper { yawn 20 }
 
-  brew do
-    install :asdf
-    install :fish
-    install :ripgrep
-    install :fzf
-    install :autojump
-    install :tmux
-    install :neovim
-    install :wget
-    install :gnupg
-    install :alacritty, tap: 'mscharley/homebrew'
-    install :grip
-    install :graphicsmagick
-    install :imagemagick
-    install :tree
-    install 'pinentry-mac'
-    install 'youtube-dl'
-  end
+  # brew do
+  #   install :asdf
+  #   install :fish
+  #   install :ripgrep
+  #   install :fzf
+  #   install :autojump
+  #   install :tmux
+  #   install :neovim
+  #   install :wget
+  #   install :gnupg
+  #   install :alacritty, tap: 'mscharley/homebrew'
+  #   install :grip
+  #   install :graphicsmagick
+  #   install :imagemagick
+  #   install :tree
+  #   install 'pinentry-mac'
+  #   install 'youtube-dl'
+  # end
 
-  asdf do
-    install :ruby, versions: %w[2.4.0 2.5.0 2.6.0]
-  end
+  # asdf do
+  #   install :ruby, versions: %w[2.4.0 2.5.0 2.6.0]
+  # end
 
   symlink do
     dest './sandbox'
 
-    ln '.dotfiles/bin/',          'bin/'
+    ln '.dotfiles/bin/'
     ln '.dotfiles/init.vim',      '.config/nvim/'
     ln '.dotfiles/config.fish',   '.config/fish/'
     ln '.dotfiles/alacritty.yml', '.config/alacritty/'
@@ -57,28 +57,28 @@ Stardot.configure! do
     ln '.dotfiles/.default-gems'
   end
 
-  vim_plug do
-    root './sandbox'
+  # vim_plug do
+  #   root './sandbox'
 
-    plug 'sheerun/vim-polyglot'
-    plug 'christoomey/vim-tmux-navigator'
-    plug 'chriskempson/base16-vim'
-    plug 'itchyny/lightline.vim'
-    plug 'jreybert/vimagit'
-    plug 'tpope/vim-commentary'
-    plug 'tpope/vim-endwise'
-    plug 'tpope/vim-fugitive'
-    plug 'tpope/vim-repeat'
-    plug 'tpope/vim-eunuch'
-    plug 'tpope/vim-surround'
-    plug 'haya14busa/incsearch.vim'
-    plug 'junegunn/vim-easy-align'
-    plug 'junegunn/fzf.vim'
-    plug 'machakann/vim-highlightedyank'
-    plug 'benmills/vimux'
-    plug 'pangloss/vim-javascript'
-    plug 'metakirby5/codi.vim'
-    plug 'SidOfc/mkdx'
-    plug 'junegunn/vader.vim'
-  end
+  #   plug 'sheerun/vim-polyglot'
+  #   plug 'christoomey/vim-tmux-navigator'
+  #   plug 'chriskempson/base16-vim'
+  #   plug 'itchyny/lightline.vim'
+  #   plug 'jreybert/vimagit'
+  #   plug 'tpope/vim-commentary'
+  #   plug 'tpope/vim-endwise'
+  #   plug 'tpope/vim-fugitive'
+  #   plug 'tpope/vim-repeat'
+  #   plug 'tpope/vim-eunuch'
+  #   plug 'tpope/vim-surround'
+  #   plug 'haya14busa/incsearch.vim'
+  #   plug 'junegunn/vim-easy-align'
+  #   plug 'junegunn/fzf.vim'
+  #   plug 'machakann/vim-highlightedyank'
+  #   plug 'benmills/vimux'
+  #   plug 'pangloss/vim-javascript'
+  #   plug 'metakirby5/codi.vim'
+  #   plug 'SidOfc/mkdx'
+  #   plug 'junegunn/vader.vim'
+  # end
 end
