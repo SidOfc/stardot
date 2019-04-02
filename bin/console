@@ -22,40 +22,40 @@ Stardot.configure! do
 
   # sleeper { yawn 20 }
 
-  # brew do
-  #   install :asdf
-  #   install :fish
-  #   install :ripgrep
-  #   install :fzf
-  #   install :autojump
-  #   install :tmux
-  #   install :neovim
-  #   install :wget
-  #   install :gnupg
-  #   install :alacritty, tap: 'mscharley/homebrew'
-  #   install :grip
-  #   install :graphicsmagick
-  #   install :imagemagick
-  #   install :tree
-  #   install 'pinentry-mac'
-  #   install 'youtube-dl'
-  # end
+  brew do
+    install :asdf
+    install :fish
+    install :ripgrep
+    install :fzf
+    install :autojump
+    install :tmux
+    install :neovim
+    install :wget
+    install :gnupg
+    install :alacritty, tap: 'mscharley/homebrew'
+    install :grip
+    install :graphicsmagick
+    install :imagemagick
+    install :tree
+    install 'pinentry-mac'
+    install 'youtube-dl'
+  end
 
-  # asdf do
-  #   install :ruby, versions: %w[2.4.0 2.5.0 2.6.0]
-  # end
+  asdf do
+    install :ruby, versions: %w[2.4.0 2.5.0 2.6.0]
+  end
 
-  # symlink do
-  #   dest './sandbox'
+  symlink do
+    dest './sandbox'
 
-  #   ln '.dotfiles/bin/',          'bin/'
-  #   ln '.dotfiles/init.vim',      '.config/nvim/'
-  #   ln '.dotfiles/config.fish',   '.config/fish/'
-  #   ln '.dotfiles/alacritty.yml', '.config/alacritty/'
-  #   ln '.dotfiles/.asdfrc'
-  #   ln '.dotfiles/.asdfrc',       '.different-name'
-  #   ln '.dotfiles/.default-gems'
-  # end
+    ln '.dotfiles/bin/',          'bin/'
+    ln '.dotfiles/init.vim',      '.config/nvim/'
+    ln '.dotfiles/config.fish',   '.config/fish/'
+    ln '.dotfiles/alacritty.yml', '.config/alacritty/'
+    ln '.dotfiles/.asdfrc'
+    ln '.dotfiles/.asdfrc',       '.different-name'
+    ln '.dotfiles/.default-gems'
+  end
 
   vim_plug do
     root './sandbox'

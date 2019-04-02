@@ -29,7 +29,8 @@ module Stardot
       blk = block || @block
       @ts = Time.now.to_i
 
-      instance_eval(&self.class.prerequisites.shift) until self.class.prerequisites.empty?
+      instance_eval(&self.class.prerequisites.shift) \
+        until self.class.prerequisites.empty?
 
       instance_eval(&blk) if blk
 
@@ -95,7 +96,9 @@ module Stardot
     end
 
     def interactive?
-      @interactive ||= STDIN.isatty && @opts.fetch(:interactive, any_flag?('-i', '--interactive'))
+      @interactive ||=
+        STDIN.isatty &&
+        @opts.fetch(:interactive, any_flag?('-i', '--interactive'))
     end
 
     def run_silent(cmd)
@@ -136,24 +139,42 @@ module Stardot
     end
 
     def time_passed(initial_time = @ts)
-      diff_time = Time.at(Time.now.to_i - initial_time).utc
-      format '%02d:%02d:%02d', diff_time.hour, diff_time.min, diff_time.sec
+      Time.at(Time.now.to_i - initial_time).utc
     end
 
-    def progress(done = false, **opts)
-      soft          = done ? !opts.fetch(:sticky, false) : true
-      loader, color = done ? [printer.done, :warn] : [printer.loader, :info]
-      load_frame    = printer.paint loader, color: color
-      suffix        = printer.paint opts.fetch(:text, 'finished'), color: color
+    def progress(**opts)
+      done  = @async_queue.empty? && @async_tasks.empty?
+      parts = done ? progress_finished_parts : progress_running_parts
 
-      timer    = printer.paint "[#{time_passed(@async_start)}]",
-                               color: (done ? :default : :gray)
-      counters = printer.paint(
-        "#{@async_tasks_count - @async_queue.count - @async_tasks.count}/#{@async_tasks_count}",
-        color: :gray
-      )
+      parts << printer.paint(opts.fetch(:text, 'finished'),
+                             color: (done ? :ok : :warn))
 
-      printer.echo "#{load_frame} #{timer} #{counters} #{suffix}", soft: soft
+      printer.echo parts.join(' '),
+                   soft: done ? !opts.fetch(:sticky, false) : true
+    end
+
+    def progress_running_parts
+      [printer.paint(printer.loader,       color: :warn),
+       printer.paint(progress_time_passed, color: :gray),
+       printer.paint(progress_so_far,      color: :warn)]
+    end
+
+    def progress_finished_parts
+      [printer.paint(printer.done,         color: :ok),
+       printer.paint(progress_time_passed, color: :default),
+       printer.paint(progress_so_far,      color: :ok)]
+    end
+
+    def progress_time_passed
+      dt = time_passed @async_start
+
+      "[#{format('%02d:%02d:%02d', dt.hour, dt.min, dt.sec)}]"
+    end
+
+    def progress_so_far
+      finished = @async_tasks_count - @async_queue.count - @async_tasks.count
+
+      "#{finished}/#{@async_tasks_count}"
     end
 
     def show_loader(msg = 'finished', **opts, &block)
@@ -187,11 +208,9 @@ module Stardot
         done.each(&:join)
 
         consume_queue
-        progress(false, **progress_opts)
+        progress(**progress_opts)
         sleep 1.0 / 30
       end
-
-      progress(true, **progress_opts)
     end
   end
 end
