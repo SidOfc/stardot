@@ -2,6 +2,8 @@
 
 class Asdf < Stardot::Fragment
   def install(language, **opts)
+    progress_label 'checking languages', 'ready to go'
+
     unless plugin? language
       return error "no such plugin: #{language}" unless plugin_exists? language
 
@@ -23,11 +25,9 @@ class Asdf < Stardot::Fragment
           perform_uninstall language, version if reinstall
           perform_installation language, version
 
-          if reinstall
-            info "❖ reinstalled #{language} #{version}"
-          else
-            ok "❖ #{language} #{version}"
-          end
+          next info "❖ reinstalled #{language} #{version}" if reinstall
+
+          ok "❖ #{language} #{version}"
         else
           info "❖ #{language} #{version} is already installed"
         end

@@ -7,7 +7,6 @@ RSpec.describe 'VimPlug' do
     allow(vim_plug).to receive_messages(
       install_plug:  true,
       perform_clone: true,
-      perform_fetch: true,
       perform_pull:  true
     )
 

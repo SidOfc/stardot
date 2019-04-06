@@ -157,12 +157,19 @@ module Stardot
     def progress(**opts)
       done  = @async_queue.empty? && @async_tasks.empty?
       parts = done ? progress_finished_parts : progress_running_parts
+      text  = opts.fetch(:text, (done ? @done_label : @progress_label) || 'finished')
 
-      parts << printer.paint(opts.fetch(:text, 'finished'),
-                             color: (done ? :ok : :warn))
+      parts << printer.paint(text, color: (done ? :ok : :warn))
+
+      @done_label = @progress_label = nil if done
 
       printer.echo parts.join(' '),
                    soft: done ? !opts.fetch(:sticky, false) : true
+    end
+
+    def progress_label(label, done_label = nil)
+      @progress_label ||= label
+      @done_label     ||= done_label
     end
 
     def progress_running_parts

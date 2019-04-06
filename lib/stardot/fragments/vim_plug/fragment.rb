@@ -6,22 +6,19 @@ class VimPlug < Stardot::Fragment
   PLUG_DIR  = File.expand_path('~/.local/share/nvim/site/autoload').freeze
   PLUG_FILE = File.join(PLUG_DIR, 'plug.vim').freeze
 
-  missing_file PLUG_FILE, :install_plug
+  async def plug(repo, **_opts)
+    progress_label 'validating plugs', 'validated plugs'
 
-  def plug(repo, **_opts)
-    async do
-      if plug? repo
-        perform_fetch repo
-        if up_to_date? repo
-          info "#{repo} is up to date"
-        else
-          perform_pull repo
-          info "updated #{repo}"
-        end
+    if plug? repo
+      if up_to_date? repo
+        info "#{repo} is up to date"
       else
-        perform_clone repo
-        ok "installed #{repo}"
+        perform_pull repo
+        info "updated #{repo}"
       end
+    else
+      perform_clone repo
+      ok "installed #{repo}"
     end
   end
 
@@ -33,14 +30,12 @@ class VimPlug < Stardot::Fragment
   private
 
   def up_to_date?(repo)
+    run_silent "git -C #{root}/#{repo_dirname(repo)} fetch"
+
     local  = `git -C #{root}/#{repo_dirname(repo)} rev-parse HEAD`
     remote = `git -C #{root}/#{repo_dirname(repo)} rev-parse '@{u}'`
 
     local == remote
-  end
-
-  def perform_fetch(repo)
-    run_silent "git -C #{root}/#{repo_dirname(repo)} fetch"
   end
 
   def perform_pull(repo)
