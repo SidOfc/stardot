@@ -7,35 +7,19 @@ class Brew < Stardot::Fragment
     version     = version_of package
     new_version = outdated_packages[package.to_s] if version
 
-    tap opts[:tap] if opts[:tap] && untapped?(opts[:tap]) && (!version || new_version)
+    tap opts[:tap] if tap_needed? opts[:tap], package
 
-    if !version
-      version = brew_info(package)[:version]
-      packages[package.to_s] = version
+    return add package, flags unless version
+    return update package if new_version
 
-      load_while "installing #{package} #{version}" do
-        perform_installation(package, *flags)
-      end
+    info "#{package} #{version} is already installed and up to date"
+  end
 
-      ok "installed brew package: #{package} #{[*flags, version].join(' ')}"
-    elsif new_version
-      update =
-        any_flag?('-y') || interactive? &&
-                           prompt("#{package} #{version} is outdated, update \
-                                  to version #{new_version}?".gsub(/\s+/, ' '),
-                                  %w[y n], selected: 'y') == 'y'
+  def tap_needed?(keg, package)
+    version     = version_of package
+    new_version = outdated_packages[package.to_s] if version
 
-      return info "#{package} update to version #{new_version} skipped" \
-        unless update
-
-      load_while "updating #{package} to version #{new_version}" do
-        perform_update package
-      end
-
-      ok "#{package} updated to version #{new_version}"
-    else
-      info "#{package} #{version} is already installed and up to date"
-    end
+    keg && untapped?(keg) && (!version || new_version)
   end
 
   def tap(keg)
@@ -48,6 +32,36 @@ class Brew < Stardot::Fragment
   end
 
   private
+
+  def add(package, flags)
+    version = brew_info(package)[:version]
+    packages[package.to_s] = version
+
+    load_while "installing #{package} #{version}" do
+      perform_installation(package, *flags)
+    end
+
+    ok "installed brew package: #{package} #{[*flags, version].join(' ')}"
+  end
+
+  def update(package)
+    version     = version_of package
+    new_version = outdated_packages[package.to_s]
+    update =
+      any_flag?('-y') || interactive? &&
+                         prompt("#{package} #{version} is outdated, update \
+                                to version #{new_version}?".gsub(/\s+/, ' '),
+                                %w[y n], selected: 'y') == 'y'
+
+    return info "#{package} update to version #{new_version} skipped" \
+      unless update
+
+    load_while "updating #{package} to version #{new_version}" do
+      perform_update package
+    end
+
+    ok "#{package} updated to version #{new_version}"
+  end
 
   def install_homebrew
     load_while 'installing homebrew' do
