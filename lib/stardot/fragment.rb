@@ -29,14 +29,6 @@ module Stardot
       end
     end
 
-    def self.async(mtd)
-      unbound_original_mtd = instance_method mtd
-
-      define_method mtd do |*args, &block|
-        async { unbound_original_mtd.bind(self).call(*args, &block) }
-      end
-    end
-
     def process(&block)
       blk = block || @block
       @ts = Time.now.to_i
@@ -49,49 +41,6 @@ module Stardot
       wait_for_async_tasks
 
       self
-    end
-
-    def self.mtd_or_proc(mtd = nil, &block)
-      block = proc { send mtd } if mtd && block.nil?
-      block
-    end
-
-    def self.missing_file(path, mtd = nil, &block)
-      path = File.expand_path path
-
-      return path if File.exist? path
-
-      prerequisites << mtd_or_proc(mtd, &block)
-    end
-
-    def self.missing_binary(cmd, mtd = nil, &block)
-      return cmd if which cmd
-
-      prerequisites << mtd_or_proc(mtd, &block)
-    end
-
-    def self.prerequisites
-      @prerequisites ||= []
-    end
-
-    def self.lazy_loadable
-      @lazy_loadable ||= Dir.glob(LAZY_LOAD_ROOT).map do |path|
-        [path.split('/')[-2].to_s.to_sym, path]
-      end.to_h
-    end
-
-    def self.inherited(fragment_class)
-      fragment_name = fragment_class.name.split(/(?=[[:upper:]])/)
-                                    .map(&:downcase).join('_')
-
-      define_method fragment_name do |*args, &block|
-        printer.echo "★ #{fragment_name}", color: :action, style: :bold
-        printer.indent
-        instance = fragment_class.new(*args, **@opts, &block).process
-
-        printer.unindent
-        instance
-      end
     end
 
     def method_missing(name, *args, &block)
@@ -205,7 +154,7 @@ module Stardot
 
     def load_while(msg = 'finished', **opts, &block)
       async(&block)
-      wait_for_async_tasks progress: { **opts, text: msg }
+      wait_for_async_tasks(**opts, text: msg)
     end
 
     def consume_queue
@@ -228,7 +177,6 @@ module Stardot
     end
 
     def wait_for_async_tasks(**opts)
-      progress_opts      = opts.fetch :progress, {}
       @async_tasks_count = @async_queue.count
       @async_start       = Time.now.to_i
 
@@ -238,8 +186,61 @@ module Stardot
       while @async_tasks.any?
         clear_finished_tasks
         consume_queue
-        progress(**progress_opts)
+        progress(**opts)
         sleep 1.0 / 30
+      end
+    end
+
+    class << self
+      def async(mtd)
+        unbound_original_mtd = instance_method mtd
+
+        define_method mtd do |*args, &block|
+          async { unbound_original_mtd.bind(self).call(*args, &block) }
+        end
+      end
+
+      def mtd_or_proc(mtd = nil, &block)
+        block = proc { send mtd } if mtd && block.nil?
+        block
+      end
+
+      def missing_file(path, mtd = nil, &block)
+        path = File.expand_path path
+
+        return path if File.exist? path
+
+        prerequisites << mtd_or_proc(mtd, &block)
+      end
+
+      def missing_binary(cmd, mtd = nil, &block)
+        return cmd if which cmd
+
+        prerequisites << mtd_or_proc(mtd, &block)
+      end
+
+      def prerequisites
+        @prerequisites ||= []
+      end
+
+      def lazy_loadable
+        @lazy_loadable ||= Dir.glob(LAZY_LOAD_ROOT).map do |path|
+          [path.split('/')[-2].to_s.to_sym, path]
+        end.to_h
+      end
+
+      def inherited(fragment_class)
+        fragment_name = fragment_class.name.split(/(?=[[:upper:]])/)
+                                      .map(&:downcase).join('_')
+
+        define_method fragment_name do |*args, &block|
+          printer.echo "★ #{fragment_name}", color: :action, style: :bold
+          printer.indent
+          instance = fragment_class.new(*args, **@opts, &block).process
+
+          printer.unindent
+          instance
+        end
       end
     end
   end

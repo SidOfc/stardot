@@ -42,7 +42,8 @@ RSpec.describe Stardot::Fragment do
       expect(with_cli_args('-i') { frag.interactive? }).to eq false
     end
 
-    it 'is false when STDIN is not a tty and { interactive: true } option is passed' do
+    it ['is false when STDIN is not a tty and',
+        '{ interactive: true } option is passed'].join(' ') do
       allow(STDIN).to receive(:isatty).and_return(false)
 
       expect(fragment(interactive: true).interactive?).to eq false

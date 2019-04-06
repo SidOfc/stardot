@@ -22,7 +22,7 @@ class Sleeper < Stardot::Fragment
   end
 end
 
-Stardot.configure! do
+Stardot.configure! do # rubocop:disable Metrics/BlockLength
   # exit if prompt('initialize dotfiles', %w[y n], selected: 'y') == 'n'
 
   # sleeper { yawn 20 }

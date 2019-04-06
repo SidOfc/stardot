@@ -7,19 +7,28 @@ class Symlink < Stardot::Fragment
     return from.each { |f| ln(f, to, **opts) } if from.is_a? Array
     return if from.end_with? '/.', '/..'
 
-    to      = expand_to to, from
-    allowed = opts.fetch :force, any_flag?('-y') || !File.exist?(to)
-    allowed = prompt("overwrite #{sp(to)}?", %w[y n], selected: 'n') == 'y' \
-      if !allowed && interactive?
-
     if !File.exist?(from)
       error "could not create a symlink because #{sp(from)} does not exist"
-    elsif allowed
+    else
+      add_symlink from, to, opts
+    end
+  end
+
+  def add_symlink(from, to, opts)
+    to = expand_to to, from
+
+    if symlink? to, opts
       persist from, to
       ok "#{sp(from)} to #{sp(to)}"
     else
       info "did not create #{sp(to)} because it already exists"
     end
+  end
+
+  def symlink?(to, opts)
+    opts.fetch(:force, any_flag?('-y') || !File.exist?(to)) ||
+      interactive? && prompt("overwrite #{sp(to)}?",
+                             %w[y n], selected: 'n') == 'y'
   end
 
   def dest(path = nil)
@@ -50,11 +59,20 @@ class Symlink < Stardot::Fragment
     to    = File.join dest, to unless to.start_with? '/'
     to    = to.gsub %r{[\/]+\z}, ''
 
-    if no_to || !File.directory?(from) && ((ext?(from) && !ext?(to)) || (!ext?(from) && Dir.exist?(to)))
+    if no_to || !File.directory?(from) && (file_to_dir_symlink?(from, to) ||
+                                           dir_to_dir_symlink?(from, to))
       to = File.join to, File.basename(from)
     end
 
     to
+  end
+
+  def file_to_dir_symlink?(from, to)
+    ext?(from) && !ext?(to)
+  end
+
+  def dir_to_dir_symlink?(from, to)
+    !ext?(from) && Dir.exist?(to)
   end
 
   def ext?(path)

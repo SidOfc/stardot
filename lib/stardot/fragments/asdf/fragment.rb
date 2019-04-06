@@ -15,27 +15,35 @@ class Asdf < Stardot::Fragment
     *versions = opts.fetch :versions, []
 
     versions.each do |version|
-      installed = language_installed? language, version
-      reinstall = installed && any_flag?('-y') || (interactive? &&
-                  prompt("reinstall #{language} #{version}?",
-                         %w[y n], selected: 'n') == 'y')
-
-      async do
-        if reinstall || !installed
-          perform_uninstall language, version if reinstall
-          perform_installation language, version
-
-          next info "❖ reinstalled #{language} #{version}" if reinstall
-
-          ok "❖ #{language} #{version}"
-        else
-          info "❖ #{language} #{version} is already installed"
-        end
-      end
+      process_language_version language, version
     end
   end
 
   private
+
+  def process_language_version(language, version)
+    installed = language_installed? language, version
+    reinstall = reinstall? language, version
+
+    async do
+      if reinstall || !installed
+        perform_uninstall language, version if reinstall
+        perform_installation language, version
+
+        next info "❖ reinstalled #{language} #{version}" if reinstall
+
+        ok "❖ #{language} #{version}"
+      else
+        info "❖ #{language} #{version} is already installed"
+      end
+    end
+  end
+
+  def reinstall?(language, version)
+    language_installed?(language, version) && (any_flag?('-y') ||
+      interactive? && prompt("reinstall #{language} #{version}?",
+                             %w[y n], selected: 'n') == 'y')
+  end
 
   def perform_language_installation(language)
     run_silent "asdf plugin-add #{language}"
@@ -56,7 +64,8 @@ class Asdf < Stardot::Fragment
   end
 
   def plugin_exists?(name)
-    @existing_plugins ||= `asdf plugin-list-all`.to_s.split("\n").map { |ln| ln.split(/\s+/).first }
+    @existing_plugins ||=
+      `asdf plugin-list-all`.to_s.split("\n").map { |ln| ln.split(/\s+/).first }
 
     n = name.to_s.downcase
     @existing_plugins.any? { |p| p == n }

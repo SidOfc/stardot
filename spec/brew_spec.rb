@@ -103,7 +103,9 @@ RSpec.describe 'Brew' do
       expect(brew).to receive(:perform_tap).with 'mscharley/homebrew'
 
       allow(brew).to receive(:version_of).with(:alacritty).and_return '0.2.6'
-      allow(brew).to receive(:outdated_packages).and_return 'alacritty' => '0.2.9'
+      allow(brew).to receive(:outdated_packages).and_return(
+        'alacritty' => '0.2.9'
+      )
 
       brew.install :alacritty, tap: 'mscharley/homebrew'
     end
@@ -112,13 +114,16 @@ RSpec.describe 'Brew' do
       expect(brew).not_to receive :perform_tap
 
       allow(brew).to receive(:version_of).with :alacritty
-      allow(brew).to receive(:brew_info).with(:alacritty).and_return version: '0.2.9'
       allow(brew).to receive(:tapped).and_return ['mscharley/homebrew']
+      allow(brew).to receive(:brew_info).with(:alacritty).and_return(
+        version: '0.2.9'
+      )
 
       brew.install :alacritty, tap: 'mscharley/homebrew'
     end
 
-    it 'does not run brew tap when supplied and package is already up to date' do
+    it ['does not run brew tap when supplied',
+        'and package is already up to date'].join(' ') do
       expect(brew).not_to receive :perform_tap
 
       allow(brew).to receive(:version_of).and_return '0.2.9'

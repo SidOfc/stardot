@@ -2,12 +2,17 @@ AllCops:
   TargetRubyVersion: 2.3
   Exclude:
     - 'spec/files/**'
+    - 'sandbox/**/*'
 
 Style/Documentation:
   Enabled: False
 
 Metrics/MethodLength:
   Max: 15
+
+Metrics/BlockLength:
+  Exclude:
+    - 'spec/**/*_spec.rb'
 
 Layout/AlignHash:
   Enabled: False

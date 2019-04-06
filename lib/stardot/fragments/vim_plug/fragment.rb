@@ -43,7 +43,8 @@ class VimPlug < Stardot::Fragment
   end
 
   def perform_clone(repo)
-    run_silent "git clone https://github.com/#{repo} #{root}/#{repo_dirname(repo)}"
+    destination = "#{root}/#{repo_dirname(repo)}"
+    run_silent "git clone https://github.com/#{repo} #{destination}"
   end
 
   def plug?(repo)
