@@ -14,7 +14,7 @@ module Stardot
   def self.configure(**opts, &block)
     unless block_given?
       stardot_rb = File.read File.join(__dir__, '../spec/files/stardot.rb')
-      block      = proc { instance_eval stardot_rb }
+      block      = -> { instance_eval stardot_rb }
     end
 
     Fragment.new(**opts, &block)
@@ -47,8 +47,16 @@ module Stardot
     exit
   end
 
+  def self.sync!
+    @cores = 1
+  end
+
+  def self.async!
+    @cores = nil
+  end
+
   def self.cores
-    Etc.nprocessors
+    @cores || Etc.nprocessors
   end
 end
 

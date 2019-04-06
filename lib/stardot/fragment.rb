@@ -22,7 +22,19 @@ module Stardot
     end
 
     def async(&block)
-      @async_queue << proc { Thread.new { instance_eval(&block) } }
+      @async_queue << lambda do
+        return instance_eval(&block) if @workers < 2
+
+        Thread.new { instance_eval(&block) }
+      end
+    end
+
+    def self.async(mtd)
+      unbound_original_mtd = instance_method mtd
+
+      define_method mtd do |*args, &block|
+        async { unbound_original_mtd.bind(self).call(*args, &block) }
+      end
     end
 
     def process(&block)
@@ -185,6 +197,8 @@ module Stardot
     def consume_queue
       while @async_queue.any? && @async_tasks.size < @workers
         worker = @async_queue.shift.call
+
+        next unless worker.is_a? Thread
 
         @async_tasks << worker
         Stardot.watch worker

@@ -34,7 +34,9 @@ RSpec.describe 'Asdf' do
       allow(asdf).to receive(:plugin?).and_return true
       allow(asdf).to receive(:language_installed?).and_return false
 
-      asdf.install :ruby, versions: '2.5.0', async: false
+      asdf.install :ruby, versions: '2.5.0'
+
+      asdf.process
 
       expect(statuses.last).to eq :ok
     end
@@ -43,7 +45,9 @@ RSpec.describe 'Asdf' do
       allow(asdf).to receive(:plugin?).and_return true
       allow(asdf).to receive(:language_installed?).and_return true
 
-      asdf.install :ruby, versions: '3.0.0', async: false
+      asdf.install :ruby, versions: '3.0.0'
+
+      asdf.process
 
       expect(statuses.last).to eq :info
     end
@@ -52,7 +56,9 @@ RSpec.describe 'Asdf' do
       allow(asdf).to receive(:plugin?).and_return true
       allow(asdf).to receive(:language_installed?).and_return true
 
-      with_cli_args('-y') { asdf.install :ruby, versions: '3.0.0', async: false }
+      with_cli_args('-y') { asdf.install :ruby, versions: '3.0.0' }
+
+      asdf.process
 
       expect(statuses.last).to eq :info
     end
@@ -63,9 +69,9 @@ RSpec.describe 'Asdf' do
       allow(asdf).to receive(:plugin?).and_return true
       allow(asdf).to receive(:language_installed?).and_return true
 
-      with_cli_args('-y') do
-        asdf.install :ruby, versions: :latest, async: false
-      end
+      with_cli_args('-y') { asdf.install :ruby, versions: :latest }
+
+      asdf.process
 
       expect(statuses.last).to eq :info
     end
@@ -75,8 +81,10 @@ RSpec.describe 'Asdf' do
       allow(asdf).to receive(:language_installed?).and_return true
 
       with_cli_args('-i') do
-        reply_with('y', asdf) { install :ruby, versions: '3.0.0', async: false }
+        reply_with('y', asdf) { install :ruby, versions: '3.0.0' }
       end
+
+      asdf.process
 
       expect(statuses.last).to eq :info
     end

@@ -3,6 +3,8 @@
 require 'bundler/setup'
 require 'stardot'
 
+Stardot.sync!
+
 module Helpers
   ROOT_DIR = File.join __dir__, 'files'
 

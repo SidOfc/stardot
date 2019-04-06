@@ -12,15 +12,13 @@ class Asdf < Stardot::Fragment
 
     *versions = opts.fetch :versions, []
 
-    tasks = versions.map do |version|
+    versions.each do |version|
       installed = language_installed? language, version
       reinstall = installed && any_flag?('-y') || (interactive? &&
                   prompt("reinstall #{language} #{version}?",
                          %w[y n], selected: 'n') == 'y')
 
-      # store async code in a proc so that we can prompt every version
-      # synchronous first, then kick off installs later
-      proc do
+      async do
         if reinstall || !installed
           perform_uninstall language, version if reinstall
           perform_installation language, version
@@ -35,9 +33,6 @@ class Asdf < Stardot::Fragment
         end
       end
     end
-
-    # everything is confirmed, run stored procs (as)ynchronous
-    tasks.each { |t| opts[:async] == false ? t.call : async(&t) }
   end
 
   private
@@ -52,10 +47,6 @@ class Asdf < Stardot::Fragment
 
   def perform_installation(language, version)
     run_silent "asdf install #{language} #{version}"
-  end
-
-  def perform_uninstall(language, version)
-    run_silent "asdf uninstall #{language} #{version}"
   end
 
   def language_installed?(name, version = nil)
