@@ -108,25 +108,20 @@ module Stardot
     end
 
     def progress_running_parts
-      [printer.paint(printer.loader,       color: :warn),
-       printer.paint(progress_time_passed, color: :gray),
-       printer.paint(progress_so_far,      color: :warn)]
+      [printer.paint(printer.loader,                      color: :warn),
+       printer.paint(progress_time_passed,                color: :gray),
+       printer.paint("#{queue.completed}/#{queue.total}", color: :warn)]
     end
 
     def progress_finished_parts
-      [printer.paint(printer.done,         color: :ok),
-       printer.paint(progress_time_passed, color: :default),
-       printer.paint(progress_so_far,      color: :ok)]
+      [printer.paint('★',                                 color: :ok),
+       printer.paint(progress_time_passed,                color: :default),
+       printer.paint("#{queue.completed}/#{queue.total}", color: :ok)]
     end
 
     def progress_time_passed
-      dt = time_passed @start
-
-      "[#{format('%02d:%02d:%02d', dt.hour, dt.min, dt.sec)}]"
-    end
-
-    def progress_so_far
-      "#{queue.completed}/#{queue.total}"
+      "[#{format('%02d:%02d:%02d',
+                 *time_passed(@start).instance_eval { [hour, min, sec] })}]"
     end
 
     def load_while(msg = 'finished', **opts, &block)

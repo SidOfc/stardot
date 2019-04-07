@@ -28,10 +28,6 @@ module Stardot
       sprite
     end
 
-    def done
-      '★'
-    end
-
     def reset!
       @frame = 0
     end
