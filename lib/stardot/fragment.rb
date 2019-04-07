@@ -50,9 +50,7 @@ module Stardot
     end
 
     def interactive?
-      @interactive ||=
-        STDIN.isatty &&
-        @opts.fetch(:interactive, any_flag?('-i', '--interactive'))
+      @interactive ||= STDIN.isatty && any_flag?('-i', '--interactive')
     end
 
     def run_silent(cmd)

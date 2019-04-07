@@ -24,29 +24,28 @@ RSpec.describe Stardot::Fragment do
   end
 
   describe '#interactive?' do
-    it 'is true when cli flag "-i" is included' do
+    it 'is false when STDIN is a tty' do
+      allow(STDIN).to receive(:isatty).and_return(true)
+
+      expect(fragment.interactive?).to eq false
+    end
+
+    it 'is false when STDIN is not a tty' do
+      allow(STDIN).to receive(:isatty).and_return(false)
+
+      expect(fragment.interactive?).to eq false
+    end
+
+    it 'is true when STDIN is a tty and cli flag "-i" is included' do
       allow(STDIN).to receive(:isatty).and_return(true)
 
       expect(with_cli_args('-i') { frag.interactive? }).to eq true
-    end
-
-    it 'is true when { interactive: true } option is passed' do
-      allow(STDIN).to receive(:isatty).and_return(true)
-
-      expect(fragment(interactive: true).interactive?).to eq true
     end
 
     it 'is false when STDIN is not a tty and cli flag "-i" is included' do
       allow(STDIN).to receive(:isatty).and_return(false)
 
       expect(with_cli_args('-i') { frag.interactive? }).to eq false
-    end
-
-    it ['is false when STDIN is not a tty and',
-        '{ interactive: true } option is passed'].join(' ') do
-      allow(STDIN).to receive(:isatty).and_return(false)
-
-      expect(fragment(interactive: true).interactive?).to eq false
     end
   end
 
