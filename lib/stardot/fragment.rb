@@ -9,20 +9,20 @@ module Stardot
       File.join(File.expand_path(__dir__), 'fragments/**/fragment.rb').freeze
 
     def initialize(**opts, &block)
-      @id                = self.class.name.gsub('::', '_').downcase.to_sym
-      @opts              = opts
-      @block             = block
-      @printer           = Printer.new(**opts)
-      @async_tasks       = []
-      @async_queue       = []
-      @workers           = opts.fetch :workers, Stardot.cores
-      @async_tasks_count = 0
+      @id          = self.class.name.gsub('::', '_').downcase.to_sym
+      @opts        = opts
+      @block       = block
+      @printer     = Printer.new(**opts)
+      @tasks       = []
+      @queue       = []
+      @workers     = opts.fetch :workers, Stardot.cores
+      @tasks_count = 0
 
       setup if respond_to? :setup
     end
 
     def async(&block)
-      @async_queue << lambda do
+      @queue << lambda do
         return instance_eval(&block) if @workers < 2
 
         Thread.new { instance_eval(&block) }
@@ -38,7 +38,7 @@ module Stardot
 
       instance_eval(&blk) if blk
 
-      wait_for_async_tasks
+      wait_for_tasks
 
       self
     end
@@ -104,7 +104,7 @@ module Stardot
     end
 
     def progress(**opts)
-      done  = @async_queue.empty? && @async_tasks.empty?
+      done  = @queue.empty? && @tasks.empty?
       parts = done ? progress_finished_parts : progress_running_parts
       parts << progress_text(done, **opts)
 
@@ -141,49 +141,49 @@ module Stardot
     end
 
     def progress_time_passed
-      dt = time_passed @async_start
+      dt = time_passed @start
 
       "[#{format('%02d:%02d:%02d', dt.hour, dt.min, dt.sec)}]"
     end
 
     def progress_so_far
-      finished = @async_tasks_count - @async_queue.count - @async_tasks.count
+      finished = @tasks_count - @queue.count - @tasks.count
 
-      "#{finished}/#{@async_tasks_count}"
+      "#{finished}/#{@tasks_count}"
     end
 
     def load_while(msg = 'finished', **opts, &block)
       async(&block)
-      wait_for_async_tasks(**opts, text: msg)
+      wait_for_tasks(**opts, text: msg)
     end
 
     def consume_queue
-      while @async_queue.any? && @async_tasks.size < @workers
-        worker = @async_queue.shift.call
+      while @queue.any? && @tasks.size < @workers
+        worker = @queue.shift.call
 
         next unless worker.is_a? Thread
 
-        @async_tasks << worker
+        @tasks << worker
         Stardot.watch worker
       end
     end
 
     def clear_finished_tasks
-      done          = @async_tasks.reject(&:status)
-      @async_tasks -= done
+      done    = @tasks.reject(&:status)
+      @tasks -= done
 
       Stardot.unwatch(*done)
       done.each(&:join)
     end
 
-    def wait_for_async_tasks(**opts)
-      @async_tasks_count = @async_queue.count
-      @async_start       = Time.now.to_i
+    def wait_for_tasks(**opts)
+      @tasks_count = @queue.count
+      @start       = Time.now.to_i
 
       printer.reset!
       consume_queue
 
-      while @async_tasks.any?
+      while @tasks.any?
         clear_finished_tasks
         consume_queue
         progress(**opts)
