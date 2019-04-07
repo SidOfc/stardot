@@ -53,7 +53,7 @@ class Brew < Stardot::Fragment
                                 to version #{new_version}?".gsub(/\s+/, ' '),
                                 %w[y n], selected: 'y') == 'y'
 
-    return info "#{package} update to version #{new_version} skipped" \
+    return warn "#{package} update to version #{new_version} skipped" \
       unless update
 
     load_while "updating #{package} to version #{new_version}" do

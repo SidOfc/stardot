@@ -8,6 +8,7 @@ require 'paint'
 require_relative 'stardot/version'
 require_relative 'stardot/logger'
 require_relative 'stardot/printer'
+require_relative 'stardot/queue'
 require_relative 'stardot/fragment'
 
 module Stardot

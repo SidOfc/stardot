@@ -2,7 +2,7 @@
 
 module Stardot
   class Fragment
-    attr_reader :id, :printer, :opts
+    attr_reader :id, :printer, :queue, :opts
 
     STATUSES       = %i[ok error info warn].freeze
     LAZY_LOAD_ROOT =
@@ -13,20 +13,13 @@ module Stardot
       @opts        = opts
       @block       = block
       @printer     = Printer.new(**opts)
-      @tasks       = []
-      @queue       = []
-      @workers     = opts.fetch :workers, Stardot.cores
-      @tasks_count = 0
+      @queue       = Queue.new [], workers: opts[:workers]
 
       setup if respond_to? :setup
     end
 
     def async(&block)
-      @queue << lambda do
-        return instance_eval(&block) if @workers < 2
-
-        Thread.new { instance_eval(&block) }
-      end
+      queue.add { instance_eval(&block) }
     end
 
     def process(&block)
@@ -82,17 +75,6 @@ module Stardot
       end
     end
 
-    def self.which(cmd)
-      exts = ENV['PATHEXT'] ? ENV['PATHEXT'].split(';') : ['']
-
-      ENV['PATH'].split(File::PATH_SEPARATOR).find do |path|
-        exts.find do |ext|
-          exe = File.join(path, "#{cmd}#{ext}")
-          exe if File.executable?(exe) && !File.directory?(exe)
-        end
-      end
-    end
-
     private
 
     def any_flag?(*flags)
@@ -104,23 +86,22 @@ module Stardot
     end
 
     def progress(**opts)
-      done  = @queue.empty? && @tasks.empty?
-      parts = done ? progress_finished_parts : progress_running_parts
-      parts << progress_text(done, **opts)
+      parts = queue.clear? ? progress_finished_parts : progress_running_parts
+      parts << progress_text(**opts)
 
       printer.echo parts.join(' '),
-                   soft: done ? !opts.fetch(:sticky, false) : true
+                   soft: queue.clear? ? !opts.fetch(:sticky, false) : true
     end
 
-    def progress_text(done = false, **opts)
-      text = opts.fetch :text, done ? @done_label : @progress_label
+    def progress_text(**opts)
+      text = opts.fetch :text, queue.clear? ? @done_label : @progress_label
 
-      if done
+      if queue.clear?
         @done_label     = nil
         @progress_label = nil
       end
 
-      printer.paint text || 'finished', color: done ? :ok : :warn
+      printer.paint text || 'finished', color: queue.clear? ? :ok : :warn
     end
 
     def progress_label(label, done_label = nil)
@@ -147,9 +128,7 @@ module Stardot
     end
 
     def progress_so_far
-      finished = @tasks_count - @queue.count - @tasks.count
-
-      "#{finished}/#{@tasks_count}"
+      "#{queue.completed}/#{queue.total}"
     end
 
     def load_while(msg = 'finished', **opts, &block)
@@ -157,52 +136,28 @@ module Stardot
       wait_for_tasks(**opts, text: msg)
     end
 
-    def consume_queue
-      while @queue.any? && @tasks.size < @workers
-        worker = @queue.shift.call
-
-        next unless worker.is_a? Thread
-
-        @tasks << worker
-        Stardot.watch worker
-      end
-    end
-
-    def clear_finished_tasks
-      done    = @tasks.reject(&:status)
-      @tasks -= done
-
-      Stardot.unwatch(*done)
-      done.each(&:join)
-    end
-
     def wait_for_tasks(**opts)
-      @tasks_count = @queue.count
-      @start       = Time.now.to_i
+      @start = Time.now.to_i
 
       printer.reset!
-      consume_queue
+      queue.consume
 
-      while @tasks.any?
-        clear_finished_tasks
-        consume_queue
+      until queue.clear?
+        queue.consume
         progress(**opts)
-        sleep 1.0 / 30
+        sleep 1.0 / 24
       end
     end
 
     class << self
-      def async(mtd)
-        unbound_original_mtd = instance_method mtd
-
-        define_method mtd do |*args, &block|
-          async { unbound_original_mtd.bind(self).call(*args, &block) }
-        end
+      def lazy_loadable
+        @lazy_loadable ||= Dir.glob(LAZY_LOAD_ROOT).map do |path|
+          [path.split('/')[-2].to_s.to_sym, path]
+        end.to_h
       end
 
-      def mtd_or_proc(mtd = nil, &block)
-        block = proc { send mtd } if mtd && block.nil?
-        block
+      def prerequisites
+        @prerequisites ||= []
       end
 
       def missing_file(path, mtd = nil, &block)
@@ -219,14 +174,30 @@ module Stardot
         prerequisites << mtd_or_proc(mtd, &block)
       end
 
-      def prerequisites
-        @prerequisites ||= []
+      private
+
+      def which(cmd)
+        exts = ENV['PATHEXT'] ? ENV['PATHEXT'].split(';') : ['']
+
+        ENV['PATH'].split(File::PATH_SEPARATOR).find do |path|
+          exts.find do |ext|
+            exe = File.join(path, "#{cmd}#{ext}")
+            exe if File.executable?(exe) && !File.directory?(exe)
+          end
+        end
       end
 
-      def lazy_loadable
-        @lazy_loadable ||= Dir.glob(LAZY_LOAD_ROOT).map do |path|
-          [path.split('/')[-2].to_s.to_sym, path]
-        end.to_h
+      def async(mtd)
+        unbound_original_mtd = instance_method mtd
+
+        define_method mtd do |*args, &block|
+          async { unbound_original_mtd.bind(self).call(*args, &block) }
+        end
+      end
+
+      def mtd_or_proc(mtd = nil, &block)
+        block = proc { send mtd } if mtd && block.nil?
+        block
       end
 
       def inherited(fragment_class)

@@ -7,6 +7,9 @@ require 'stardot'
 
 # Stardot.sync!
 
+# Pry.start
+# exit
+
 class Sleeper < Stardot::Fragment
   def yawn(count = 10)
     count.times { yawn_once rand 3..5 }

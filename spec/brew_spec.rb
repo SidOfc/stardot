@@ -81,6 +81,15 @@ RSpec.describe 'Brew' do
       end
     end
 
+    it 'does not update without cli flag "-y" or "-i"' do
+      allow(brew).to receive(:version_of).with(:fzf).and_return '0.17.0'
+      allow(brew).to receive(:outdated_packages).and_return 'fzf' => '0.17.5'
+
+      brew.install :fzf
+
+      expect(statuses.last).to eq :warn
+    end
+
     it 'updates without prompting when cli flag "-y" is passed' do
       expect(brew).to receive(:perform_update).with :fzf
 
