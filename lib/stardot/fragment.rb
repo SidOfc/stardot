@@ -127,7 +127,7 @@ module Stardot
       action_name = fragment_name.split(/(?=[[:upper:]_\-.])/)
                                  .map(&:downcase).join '_'
 
-      return ARGV.any?(/^--only-#{action_name}/) if ARGV.any?(/^--only-\w+/)
+      return ARGV.none?(/^--only-#{action_name}/) if ARGV.any?(/^--only-\w+/)
 
       ARGV.any?(/^--skip-#{action_name}/)
     end
