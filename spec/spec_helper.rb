@@ -27,6 +27,17 @@ module Helpers
     Stardot::Fragment.new(opts.merge(silent: true, log: true), &block).process
   end
 
+  def create_plugin(name)
+    classified = name.to_s.capitalize.gsub(/_(.)/) do
+      Regexp.last_match(1).upcase
+    end
+
+    # rubocop:disable Security/Eval
+    eval "class #{classified} < Stardot::Fragment; end",
+         TOPLEVEL_BINDING, __FILE__, __LINE__ - 1
+    # rubocop:enable Security/Eval
+  end
+
   def as_plugin(name, &block)
     return fragment.send name unless block
 

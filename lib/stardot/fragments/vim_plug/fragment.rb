@@ -32,8 +32,8 @@ class VimPlug < Stardot::Fragment
   def up_to_date?(repo)
     run_silent "git -C #{root}/#{repo_dirname(repo)} fetch"
 
-    local  = `git -C #{root}/#{repo_dirname(repo)} rev-parse HEAD`
-    remote = `git -C #{root}/#{repo_dirname(repo)} rev-parse '@{u}'`
+    local  = bash "git -C #{root}/#{repo_dirname(repo)} rev-parse HEAD"
+    remote = bash "git -C #{root}/#{repo_dirname(repo)} rev-parse '@{u}'"
 
     local == remote
   end

@@ -82,7 +82,7 @@ class Brew < Stardot::Fragment
   end
 
   def tapped
-    @tapped ||= `brew tap`.split("\n").map(&:strip)
+    @tapped ||= bash('brew tap').split("\n").map(&:strip)
   end
 
   def untapped?(keg)
@@ -91,14 +91,14 @@ class Brew < Stardot::Fragment
 
   def outdated_packages
     @outdated_packages ||=
-      JSON.parse(`brew outdated --json`)
+      JSON.parse(bash('brew outdated --json'))
           .each_with_object({}) do |pkg, h|
             h[pkg['name']] = pkg['current_version']
           end
   end
 
   def brew_info(package)
-    raw = JSON.parse(`brew info #{package} --json`.to_s).first
+    raw = JSON.parse(bash("brew info #{package} --json").to_s).first
 
     { name: package,
       version: raw&.dig('versions', 'stable') }
@@ -109,7 +109,7 @@ class Brew < Stardot::Fragment
 
     load_while 'fetching package information', sticky: true do
       @packages =
-        JSON.parse(`brew info --json=v1 --installed`)
+        JSON.parse(bash('brew info --json=v1 --installed'))
             .each_with_object({}) do |pkg, h|
               h[pkg['name']] = pkg['installed'].last['version']
             end

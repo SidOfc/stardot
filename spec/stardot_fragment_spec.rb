@@ -9,6 +9,68 @@ RSpec.describe Stardot::Fragment do
     end
   end
 
+  describe '#skip?' do
+    it 'does not load a plugin when a skip flag is passed' do
+      expect(frag).to receive(:skip?).and_return true
+
+      create_plugin :hello
+
+      with_cli_args('--skip-hello') { frag.hello }
+    end
+
+    it 'handles multiple --skip flags' do
+      expect(frag).to receive(:skip?).and_return true, true, false
+
+      create_plugin :hello
+      create_plugin :world
+      create_plugin :goodbye
+
+      with_cli_args '--skip-hello', '--skip-world' do
+        frag.hello
+        frag.world
+        frag.goodbye
+      end
+    end
+
+    it 'only loads plugins specified by only flag' do
+      expect(frag).to receive(:skip?).and_return false, true, true
+
+      create_plugin :hello
+      create_plugin :world
+      create_plugin :goodbye
+
+      with_cli_args '--only-hello' do
+        frag.hello
+        frag.world
+        frag.goodbye
+      end
+    end
+
+    it 'handles multiple --only flags' do
+      expect(frag).to receive(:skip?).and_return false, false, true
+
+      create_plugin :hello
+      create_plugin :world
+      create_plugin :goodbye
+
+      with_cli_args '--only-hello', '--only-world' do
+        frag.hello
+        frag.world
+        frag.goodbye
+      end
+    end
+
+    it 'disregards --skip when --only is passed with the same name' do
+      expect(frag).to receive(:skip?).and_return false
+
+      create_plugin :hello
+
+      with_cli_args '--skip-hello', '--only-hello' do
+        frag.hello
+      end
+    end
+  end
+
   describe '#prompt' do
     it 'prompts for user input' do
       answer = reply_with('y') { prompt 'prompt text', %w[y n] }

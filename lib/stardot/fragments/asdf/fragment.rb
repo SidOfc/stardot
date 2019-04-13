@@ -59,20 +59,22 @@ class Asdf < Stardot::Fragment
 
   def language_installed?(name, version = nil)
     @language_cache ||= {}
-    @language_cache[name] ||= `asdf list #{name}`.split("\n").map(&:strip).uniq
+    @language_cache[name] ||= bash("asdf list #{name}").split("\n")
+                                                       .map(&:strip).uniq
     @language_cache[name]&.include? version
   end
 
   def plugin_exists?(name)
     @existing_plugins ||=
-      `asdf plugin-list-all`.to_s.split("\n").map { |ln| ln.split(/\s+/).first }
+      bash('asdf plugin-list-all').to_s.split("\n")
+                                  .map { |ln| ln.split(/\s+/).first }
 
     n = name.to_s.downcase
     @existing_plugins.any? { |p| p == n }
   end
 
   def plugin?(name)
-    @plugins ||= `asdf plugin-list`.to_s.split("\n")
+    @plugins ||= bash('asdf plugin-list').to_s.split("\n")
 
     n = name.to_s.downcase
     @plugins.any? { |p| p == n }

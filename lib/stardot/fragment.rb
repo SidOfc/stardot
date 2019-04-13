@@ -54,7 +54,11 @@ module Stardot
     end
 
     def run_silent(cmd)
-      system "#{cmd} >/dev/null 2>&1"
+      bash "#{cmd} >/dev/null 2>&1"
+    end
+
+    def bash(cmd)
+      `bash -c #{Shellwords.escape(cmd)}`
     end
 
     def prompt(msg, options, **opts)
@@ -117,6 +121,15 @@ module Stardot
       [printer.paint('★',                                 color: :ok),
        printer.paint(progress_time_passed,                color: :default),
        printer.paint("#{queue.completed}/#{queue.total}", color: :ok)]
+    end
+
+    def skip?(fragment_name)
+      action_name = fragment_name.split(/(?=[[:upper:]_\-.])/)
+                                 .map(&:downcase).join '_'
+
+      return ARGV.any?(/^--only-#{action_name}/) if ARGV.any?(/^--only-\w+/)
+
+      ARGV.any?(/^--skip-#{action_name}/)
     end
 
     def progress_time_passed
@@ -198,6 +211,8 @@ module Stardot
                                       .map(&:downcase).join('_')
 
         define_method fragment_name do |*args, &block|
+          return fragment_class.new(*args, **@opts) if skip? fragment_name
+
           printer.echo "★ #{fragment_name}", color: :action, style: :bold
           printer.indent
           instance = fragment_class.new(*args, **@opts, &block).process

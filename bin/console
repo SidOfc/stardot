@@ -5,10 +5,12 @@ require 'bundler/setup'
 require 'pry'
 require 'stardot'
 
-# Stardot.sync!
+Stardot.sync! if ARGV.include? '--sync'
 
-# Pry.start
-# exit
+if ARGV.include? '--pry'
+  Pry.start
+  exit
+end
 
 class Sleeper < Stardot::Fragment
   def yawn(count = 10)
