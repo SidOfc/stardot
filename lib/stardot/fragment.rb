@@ -2,7 +2,7 @@
 
 module Stardot
   class Fragment
-    attr_reader :id, :printer, :queue, :opts
+    attr_reader :id, :printer, :opts
 
     STATUSES       = %i[ok error info warn].freeze
     LAZY_LOAD_ROOT =
@@ -18,8 +18,9 @@ module Stardot
       setup if respond_to? :setup
     end
 
-    def async(&block)
-      queue.add { instance_eval(&block) }
+    def queue(&block)
+      queue.add { instance_eval(&block) } if block
+      @queue
     end
 
     def process(&block)
@@ -120,7 +121,7 @@ module Stardot
     end
 
     def load_while(msg = 'finished', **opts, &block)
-      async(&block)
+      queue(&block)
       wait_for_tasks(**opts, text: msg)
     end
 
@@ -173,11 +174,11 @@ module Stardot
         end
       end
 
-      def async(mtd)
+      def queued(mtd)
         unbound_original_mtd = instance_method mtd
 
         define_method mtd do |*args, &block|
-          async { unbound_original_mtd.bind(self).call(*args, &block) }
+          queue { unbound_original_mtd.bind(self).call(*args, &block) }
         end
       end
 

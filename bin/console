@@ -17,12 +17,12 @@ class Sleeper < Stardot::Fragment
     count.times { yawn_once rand 3..5 }
   end
 
-  async def yawn_once(seconds = 1)
+  queued def yawn_once(seconds = 1)
     sleep seconds
     ok "yawn done after #{seconds} seconds"
   end
 
-  async def hello
+  queued def hello
     sleep 2
   end
 end

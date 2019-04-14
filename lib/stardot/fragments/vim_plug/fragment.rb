@@ -6,7 +6,7 @@ class VimPlug < Stardot::Fragment
   PLUG_DIR  = File.expand_path('~/.local/share/nvim/site/autoload').freeze
   PLUG_FILE = File.join(PLUG_DIR, 'plug.vim').freeze
 
-  async def plug(repo, **_opts)
+  queued def plug(repo, **_opts)
     if plug? repo
       if up_to_date? repo
         info "#{repo} is up to date"

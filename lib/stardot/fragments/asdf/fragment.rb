@@ -23,7 +23,7 @@ class Asdf < Stardot::Fragment
     installed = language_installed? language, version
     reinstall = reinstall? language, version
 
-    async do
+    queue do
       if reinstall || !installed
         perform_uninstall language, version if reinstall
         perform_installation language, version
