@@ -26,8 +26,9 @@ module Stardot
       blk = block || @block
       @ts = Time.now.to_i
 
-      instance_eval(&self.class.prerequisites.shift) \
-        until self.class.prerequisites.empty?
+      until self.class.prerequisites.empty?
+        instance_eval(&self.class.prerequisites.shift)
+      end
 
       instance_eval(&blk) if blk
 
@@ -88,39 +89,23 @@ module Stardot
     end
 
     def progress(**opts)
-      parts = queue.clear? ? progress_finished_parts : progress_running_parts
-      parts << progress_text(**opts)
-
+      parts = progress_parts.map { |str, clr| printer.paint str, color: clr }
       printer.echo parts.join(' '),
                    soft: queue.clear? ? !opts.fetch(:sticky, false) : true
     end
 
-    def progress_text(**opts)
-      text = opts.fetch :text, queue.clear? ? @done_label : @progress_label
+    def progress_parts
+      c1, c2 = queue.clear? ? %i[ok default] : %i[warn gray]
 
-      if queue.clear?
-        @done_label     = nil
-        @progress_label = nil
-      end
-
-      printer.paint text || 'finished', color: queue.clear? ? :ok : :warn
+      [[queue.clear? ? '★' : printer.loader, c1],
+       [progress_time_passed,                c2],
+       ["#{queue.completed}/#{queue.total}", c1],
+       ['finished',                          c1]]
     end
 
-    def progress_label(label, done_label = nil)
-      @done_label     ||= done_label
-      @progress_label ||= label
-    end
-
-    def progress_running_parts
-      [printer.paint(printer.loader,                      color: :warn),
-       printer.paint(progress_time_passed,                color: :gray),
-       printer.paint("#{queue.completed}/#{queue.total}", color: :warn)]
-    end
-
-    def progress_finished_parts
-      [printer.paint('★',                                 color: :ok),
-       printer.paint(progress_time_passed,                color: :default),
-       printer.paint("#{queue.completed}/#{queue.total}", color: :ok)]
+    def progress_time_passed
+      "[#{format('%02d:%02d:%02d',
+                 *time_passed(@start).instance_eval { [hour, min, sec] })}]"
     end
 
     def skip?(fragment_name)
@@ -132,11 +117,6 @@ module Stardot
       else
         ARGV.any? { |arg| arg =~ /^--skip-#{action_name}/ }
       end
-    end
-
-    def progress_time_passed
-      "[#{format('%02d:%02d:%02d',
-                 *time_passed(@start).instance_eval { [hour, min, sec] })}]"
     end
 
     def load_while(msg = 'finished', **opts, &block)
@@ -182,8 +162,6 @@ module Stardot
         prerequisites << mtd_or_proc(mtd, &block)
       end
 
-      private
-
       def which(cmd)
         exts = ENV['PATHEXT'] ? ENV['PATHEXT'].split(';') : ['']
 
@@ -208,19 +186,15 @@ module Stardot
         block
       end
 
-      def inherited(fragment_class)
-        fragment_name = fragment_class.name.split(/(?=[[:upper:]])/)
-                                      .map(&:downcase).join('_')
+      def inherited(frag_class)
+        frag_name = frag_class.name.split(/(?=[[:upper:]])/)
+                              .map(&:downcase).join '_'
 
-        define_method fragment_name do |*args, &block|
-          return fragment_class.new(*args, **@opts) if skip? fragment_name
+        define_method frag_name do |*args, &block|
+          return frag_class.new(*args, **@opts) if skip? frag_name
 
-          printer.echo "★ #{fragment_name}", color: :action, style: :bold
-          printer.indent
-          instance = fragment_class.new(*args, **@opts, &block).process
-
-          printer.unindent
-          instance
+          printer.echo "★ #{frag_name}", color: :action, style: :bold
+          printer.indented { frag_class.new(*args, **@opts, &block).process }
         end
       end
     end

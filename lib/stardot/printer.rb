@@ -90,6 +90,13 @@ module Stardot
       Printer.indent!
     end
 
+    def indented
+      Printer.indent!
+      result = yield
+      Printer.unindent!
+      result
+    end
+
     def unindent
       Printer.unindent!
     end

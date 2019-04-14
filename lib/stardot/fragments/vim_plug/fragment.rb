@@ -7,8 +7,6 @@ class VimPlug < Stardot::Fragment
   PLUG_FILE = File.join(PLUG_DIR, 'plug.vim').freeze
 
   async def plug(repo, **_opts)
-    progress_label 'validating plugs', 'validated plugs'
-
     if plug? repo
       if up_to_date? repo
         info "#{repo} is up to date"
