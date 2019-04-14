@@ -41,7 +41,7 @@ class Brew < Stardot::Fragment
       perform_installation(package, *flags)
     end
 
-    ok "installed brew package: #{package} #{[*flags, version].join(' ')}"
+    ok "installed brew package: #{package} #{[version, *flags].join(' ')}"
   end
 
   def update(package)
@@ -107,7 +107,7 @@ class Brew < Stardot::Fragment
   def packages
     return @packages if @packages
 
-    load_while 'fetching package information', sticky: true do
+    load_while 'retrieving package information', sticky: true do
       @packages =
         JSON.parse(bash('brew info --json=v1 --installed'))
             .each_with_object({}) do |pkg, h|

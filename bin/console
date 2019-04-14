@@ -42,6 +42,11 @@ Stardot.configure! do # rubocop:disable Metrics/BlockLength
     install :autojump
     install :tmux
     install :neovim
+    install :curl
+    install :openssl
+    install :mysql
+    install :redis
+    install :mongo
     install :wget
     install :gnupg
     install :alacritty, tap: 'mscharley/homebrew'
