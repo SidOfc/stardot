@@ -72,6 +72,7 @@ Stardot.configure! do # rubocop:disable Metrics/BlockLength
   vim_plug do
     root './sandbox'
 
+    plug 'w0rp/ale'
     plug 'sheerun/vim-polyglot'
     plug 'christoomey/vim-tmux-navigator'
     plug 'chriskempson/base16-vim'

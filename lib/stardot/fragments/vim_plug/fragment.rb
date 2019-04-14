@@ -12,7 +12,7 @@ class VimPlug < Stardot::Fragment
         info "#{repo} is up to date"
       else
         perform_pull repo
-        info "updated #{repo}"
+        warn "updated #{repo}"
       end
     else
       perform_clone repo

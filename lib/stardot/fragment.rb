@@ -110,11 +110,11 @@ module Stardot
     end
 
     def skip?(fragment_name)
-      action_name = fragment_name.split(/(?=[[:upper:]_\-.])/)
+      action_name = fragment_name.split(/(?=[[:upper:]])|[_\-.]/)
                                  .map(&:downcase).join '_'
 
       if ARGV.any? { |arg| arg =~ /^--only-\w+/ }
-        ARGV.none?(/^--only-#{action_name}/)
+        ARGV.none? { |arg| arg =~ /^--only-#{action_name}/ }
       else
         ARGV.any? { |arg| arg =~ /^--skip-#{action_name}/ }
       end
