@@ -127,9 +127,11 @@ module Stardot
       action_name = fragment_name.split(/(?=[[:upper:]_\-.])/)
                                  .map(&:downcase).join '_'
 
-      return ARGV.none?(/^--only-#{action_name}/) if ARGV.any?(/^--only-\w+/)
-
-      ARGV.any?(/^--skip-#{action_name}/)
+      if ARGV.any? { |arg| arg =~ /^--only-\w+/ }
+        ARGV.none?(/^--only-#{action_name}/)
+      else
+        ARGV.any? { |arg| arg =~ /^--skip-#{action_name}/ }
+      end
     end
 
     def progress_time_passed

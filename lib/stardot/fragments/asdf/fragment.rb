@@ -2,7 +2,7 @@
 
 class Asdf < Stardot::Fragment
   def install(language, **opts)
-    progress_label 'checking languages', 'ready to go'
+    progress_label 'preparing languages', 'ready to go'
 
     unless plugin? language
       return error "no such plugin: #{language}" unless plugin_exists? language
