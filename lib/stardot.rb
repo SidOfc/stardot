@@ -49,11 +49,21 @@ module Stardot
   end
 
   def self.sync!
-    @cores = 1
+    @sync = true
+    self
   end
 
-  def self.async!
-    @cores = nil
+  def self.concurrent!
+    @sync = false
+    self
+  end
+
+  def self.sync?
+    @sync
+  end
+
+  def self.concurrent?
+    !sync?
   end
 
   def self.cores

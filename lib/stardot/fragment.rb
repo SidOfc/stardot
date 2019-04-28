@@ -192,10 +192,10 @@ module Stardot
                               .map(&:downcase).join '_'
 
         define_method frag_name do |*args, &block|
-          return frag_class.new(*args, **@opts) if skip? frag_name
-
-          printer.echo "★ #{frag_name}", color: :action, style: :bold
-          printer.indented { frag_class.new(*args, **@opts, &block).process }
+          unless skip? frag_name
+            printer.echo "★ #{frag_name}", color: :action, style: :bold
+            printer.indented { frag_class.new(*args, **@opts, &block).process }
+          end
         end
       end
     end

@@ -13,8 +13,6 @@ module Stardot
     end
 
     def add(&block)
-      return tasks << -> { yield } if workers < 2
-
       tasks << -> { Thread.new(&block) }
     end
 
@@ -44,10 +42,12 @@ module Stardot
 
     def replenish
       while tasks.any? && running.size < workers
-        next unless (result = tasks.shift.call).is_a? Thread
+        thread = tasks.shift.call
 
-        @running << result
-        Stardot.watch result
+        next thread.join unless Stardot.concurrent?
+
+        @running << thread
+        Stardot.watch thread
       end
     end
   end

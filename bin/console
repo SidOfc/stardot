@@ -32,30 +32,30 @@ Stardot.configure! do # rubocop:disable Metrics/BlockLength
 
   # sleeper { yawn 20 }
 
-  # sleeper { 5.times { hello } }
-
   brew do
-    install :asdf
-    install :fish
-    install :ripgrep
-    install :fzf
-    install :autojump
-    install :tmux
-    install :neovim
-    install :curl
-    install :openssl
-    install :mysql
-    install :redis
+    # install :asdf
+    # install :fish
+    # install :ripgrep
+    # install :fzf
+    # install :autojump
+    # install :tmux
+    # install :neovim
+    # install :curl
+    # install :openssl
+    # install :mysql
+    # install :redis
     install :mongo
-    install :wget
-    install :gnupg
-    install :alacritty, tap: 'mscharley/homebrew'
-    install :grip
-    install :graphicsmagick
-    install :imagemagick
-    install :tree
-    install 'pinentry-mac'
-    install 'youtube-dl'
+    # install :wget
+    # install :gnupg
+    # install :alacritty, tap: 'mscharley/homebrew'
+    # install :grip
+    # install :gifsicle
+    # install :optipng
+    # install :graphicsmagick
+    # install :imagemagick
+    # install :tree
+    # install 'pinentry-mac'
+    # install 'youtube-dl'
   end
 
   asdf do
