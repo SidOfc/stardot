@@ -5,12 +5,8 @@ require 'bundler/setup'
 require 'pry'
 require 'stardot'
 
-Stardot.sync! if ARGV.include? '--sync'
-
-if ARGV.include? '--pry'
-  Pry.start
-  exit
-end
+Stardot.sync!     if ARGV.include? '--sync'
+Pry.start || exit if ARGV.include? '--pry'
 
 class Sleeper < Stardot::Fragment
   def yawn(count = 10)
@@ -32,36 +28,6 @@ Stardot.configure! do # rubocop:disable Metrics/BlockLength
 
   # sleeper { yawn 20 }
 
-  brew do
-    # install :asdf
-    # install :fish
-    # install :ripgrep
-    # install :fzf
-    # install :autojump
-    # install :tmux
-    # install :neovim
-    # install :curl
-    # install :openssl
-    # install :mysql
-    # install :redis
-    install :mongo
-    # install :wget
-    # install :gnupg
-    # install :alacritty, tap: 'mscharley/homebrew'
-    # install :grip
-    # install :gifsicle
-    # install :optipng
-    # install :graphicsmagick
-    # install :imagemagick
-    # install :tree
-    # install 'pinentry-mac'
-    # install 'youtube-dl'
-  end
-
-  asdf do
-    install :ruby, versions: %w[2.4.0 2.5.0 2.6.0]
-  end
-
   symlink do
     dest './sandbox'
 
@@ -72,6 +38,36 @@ Stardot.configure! do # rubocop:disable Metrics/BlockLength
     ln '.dotfiles/.asdfrc',       '.different-name'
     ln '.dotfiles/.asdfrc'
     ln '.dotfiles/.default-gems'
+  end
+
+  brew do
+    install :asdf
+    install :fish
+    install :ripgrep
+    install :fzf
+    install :autojump
+    install :tmux
+    install :neovim
+    install :curl
+    install :openssl
+    install :mysql
+    install :redis
+    install :mongodb
+    install :wget
+    install :gnupg
+    install :alacritty, tap: 'mscharley/homebrew'
+    install :grip
+    install :gifsicle
+    install :optipng
+    install :graphicsmagick
+    install :imagemagick
+    install :tree
+    install 'pinentry-mac'
+    install 'youtube-dl'
+  end
+
+  asdf do
+    install :ruby, versions: %w[2.4.0 2.5.0 2.6.0]
   end
 
   vim_plug do
@@ -98,5 +94,6 @@ Stardot.configure! do # rubocop:disable Metrics/BlockLength
     plug 'metakirby5/codi.vim'
     plug 'SidOfc/mkdx'
     plug 'junegunn/vader.vim'
+    plug 'styled-components/styled-components', branch: :main
   end
 end

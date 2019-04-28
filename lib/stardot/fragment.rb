@@ -91,6 +91,8 @@ module Stardot
 
     def progress(**opts)
       parts = progress_parts(**opts).map { |s, c| printer.paint s, color: c }
+
+      parts.delete_at 2 if opts.key? :text
       printer.echo parts.join(' '),
                    soft: queue.clear? ? !opts.fetch(:sticky, false) : true
     end
@@ -99,9 +101,9 @@ module Stardot
       c1, c2 = queue.clear? ? %i[ok default] : %i[warn gray]
 
       [[queue.clear? ? '★' : printer.loader, c1],
-       [progress_time_passed,                c2],
+       [progress_time_passed, c2],
        ["#{queue.completed}/#{queue.total}", c1],
-       [opts.fetch(:text, 'finished'),       c1]]
+       [opts.fetch(:text, 'finished'), c1]]
     end
 
     def progress_time_passed
