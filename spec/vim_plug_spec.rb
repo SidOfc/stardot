@@ -3,6 +3,7 @@
 RSpec.describe 'VimPlug' do
   let :vim_plug do
     vim_plug = as_plugin :vim_plug
+    vim_plug.root File.join(Helpers::ROOT_DIR, 'vim_plug')
 
     allow(vim_plug).to receive_messages(
       install_plug:  true,
@@ -12,6 +13,9 @@ RSpec.describe 'VimPlug' do
 
     vim_plug
   end
+
+  before(:each) { FileUtils.mkdir_p vim_plug.root }
+  after(:each) { FileUtils.rm_rf vim_plug.root }
 
   it 'installs vim-plug if it is not installed' do
     expect(vim_plug).to receive :install_plug
@@ -45,6 +49,21 @@ RSpec.describe 'VimPlug' do
       vim_plug.plug 'sidofc/mkdx'
 
       vim_plug.process
+    end
+
+    it 'can install a specific branch' do
+      allow(vim_plug).to receive(:plug?).and_return false
+      allow(vim_plug).to receive(:install_plug).and_call_original
+      allow(vim_plug).to receive(:perform_clone).and_call_original
+
+      vim_plug.plug 'styled-components/vim-styled-components', branch: :main
+
+      vim_plug.process
+
+      pp vim_plug.path_to('vim-styled-components')
+      expect(git_branch(vim_plug.path_to('vim-styled-components'))).to(
+        eq('main')
+      )
     end
   end
 end

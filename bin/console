@@ -94,6 +94,6 @@ Stardot.configure! do # rubocop:disable Metrics/BlockLength
     plug 'metakirby5/codi.vim'
     plug 'SidOfc/mkdx'
     plug 'junegunn/vader.vim'
-    plug 'styled-components/styled-components', branch: :main
+    plug 'styled-components/vim-styled-components', branch: :main
   end
 end

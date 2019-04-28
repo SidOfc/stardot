@@ -8,6 +8,16 @@ Stardot.sync!
 module Helpers
   ROOT_DIR = File.join __dir__, 'files'
 
+  def git_branch(working_directory)
+    command = [
+      "git -C #{File.expand_path(working_directory)} branch",
+      "grep '*'",
+      "cut -d' ' -f2"
+    ].join ' | '
+
+    `#{command}`.strip
+  end
+
   def one_of(*any)
     any.sample
   end

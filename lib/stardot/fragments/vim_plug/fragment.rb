@@ -6,16 +6,16 @@ class VimPlug < Stardot::Fragment
   PLUG_DIR  = File.expand_path('~/.local/share/nvim/site/autoload').freeze
   PLUG_FILE = File.join(PLUG_DIR, 'plug.vim').freeze
 
-  queued def plug(repo, **_opts)
+  queued def plug(repo, **opts)
     if plug? repo
       if up_to_date? repo
         info "#{repo} is up to date"
       else
-        perform_pull repo
+        perform_pull(repo, **opts)
         warn "updated #{repo}"
       end
     else
-      perform_clone repo
+      perform_clone(repo, **opts)
       ok "installed #{repo}"
     end
   end
@@ -23,6 +23,10 @@ class VimPlug < Stardot::Fragment
   def root(path = nil)
     @root = File.expand_path path if path
     @root ||= PLUGGED
+  end
+
+  def path_to(plug_name)
+    File.join root, plug_name
   end
 
   private
@@ -36,13 +40,16 @@ class VimPlug < Stardot::Fragment
     local == remote
   end
 
-  def perform_pull(repo)
-    run_silent "git -C #{root}/#{repo_dirname(repo)} pull"
+  def perform_pull(repo, **opts)
+    branch = opts.fetch :branch, ''
+    run_silent "git -C #{root}/#{repo_dirname(repo)} pull #{branch}"
   end
 
-  def perform_clone(repo)
-    destination = "#{root}/#{repo_dirname(repo)}"
-    run_silent "git clone https://github.com/#{repo} #{destination}"
+  def perform_clone(repo, **opts)
+    dest        = "#{root}/#{repo_dirname(repo)}"
+    branch_opts = "-b #{opts[:branch]} --single-branch" if opts[:branch]
+
+    run_silent "git clone #{branch_opts} https://github.com/#{repo} #{dest}"
   end
 
   def plug?(repo)
