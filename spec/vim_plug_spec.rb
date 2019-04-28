@@ -52,15 +52,21 @@ RSpec.describe 'VimPlug' do
     end
 
     it 'can install a specific branch' do
+      # git clone https://github.com/styled-components/vim-styled-components
+      test_repository = File.join(Helpers::ROOT_DIR, 'vim-styled-components')
+
+      unless Dir.exist? test_repository
+        skip "directory spec/files/vim-styled-components does not exist"
+      end
+
       allow(vim_plug).to receive(:plug?).and_return false
       allow(vim_plug).to receive(:install_plug).and_call_original
       allow(vim_plug).to receive(:perform_clone).and_call_original
 
-      vim_plug.plug 'styled-components/vim-styled-components', branch: :main
+      vim_plug.plug test_repository, branch: :main
 
       vim_plug.process
 
-      pp vim_plug.path_to('vim-styled-components')
       expect(git_branch(vim_plug.path_to('vim-styled-components'))).to(
         eq('main')
       )

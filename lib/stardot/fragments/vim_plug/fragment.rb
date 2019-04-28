@@ -49,7 +49,13 @@ class VimPlug < Stardot::Fragment
     dest        = "#{root}/#{repo_dirname(repo)}"
     branch_opts = "-b #{opts[:branch]} --single-branch" if opts[:branch]
 
-    run_silent "git clone #{branch_opts} https://github.com/#{repo} #{dest}"
+    run_silent "git clone #{branch_opts} #{repo_path(repo)} #{dest}"
+  end
+
+  def repo_path(repo)
+    return File.expand_path(repo) if %w[~ . /].any? { |x| repo.start_with? x }
+
+    "https://github.com/#{repo}"
   end
 
   def plug?(repo)

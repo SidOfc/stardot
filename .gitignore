@@ -5,6 +5,7 @@
 /doc/
 /pkg/
 /spec/reports/
+/spec/files/vim-styled-components/
 /sandbox/
 /tmp/
 /log/
