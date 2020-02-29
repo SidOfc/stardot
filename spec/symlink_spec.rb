@@ -68,11 +68,8 @@ RSpec.describe 'Symlink' do
     it 'prompts to overwrite an existing symlink using cli flag "-i"' do
       expect(symlink).to receive :prompt
 
-      with_cli_args('-i') do
-        symlink.ln 'stardot.rb'
-
-        reply_with(one_of('y', 'n'), symlink) { ln 'stardot.rb' }
-      end
+      symlink.ln 'stardot.rb'
+      reply_with(one_of('y', 'n'), symlink) { ln 'stardot.rb' }
     end
 
     it 'supports globbing the source location' do

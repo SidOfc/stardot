@@ -1,0 +1,1 @@
+/home/sidofc/Dev/stardot/spec/files/stardot.rb

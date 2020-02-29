@@ -179,8 +179,8 @@ module Stardot
       def queued(mtd)
         unbound_original_mtd = instance_method mtd
 
-        define_method mtd do |*args, &block|
-          queue { unbound_original_mtd.bind(self).call(*args, &block) }
+        define_method mtd do |*args, **opts, &block|
+          queue { unbound_original_mtd.bind(self).call(*args, **opts, &block) }
         end
       end
 

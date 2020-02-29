@@ -16,5 +16,5 @@ Metrics/BlockLength:
   Exclude:
     - 'spec/**/*_spec.rb'
 
-Layout/AlignHash:
+Layout/HashAlignment:
   Enabled: False
